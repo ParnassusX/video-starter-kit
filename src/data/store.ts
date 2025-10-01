@@ -3,8 +3,7 @@
 import { AVAILABLE_ENDPOINTS } from "@/lib/fal";
 import type { PlayerRef } from "@remotion/player";
 import { createContext, useContext } from "react";
-import { createStore } from "zustand";
-import { useStore } from "zustand/react";
+import { createStore, useStore } from "zustand";
 
 export const LAST_PROJECT_ID_KEY = "__aivs_lastProjectId";
 

@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { Video } from "lucide-react";
+import { Film, Sparkles } from "lucide-react";
 
 export default function Header() {
   return (
@@ -8,8 +8,8 @@ export default function Header() {
       <div className="container mx-auto px-4 h-16 flex items-center justify-between">
         <div className="flex flex-1">
           <Link href="/" className="flex items-center space-x-2">
-            <Video className="w-6 h-6" />
-            <span className="font-semibold">fal.ai</span>
+            <Film className="w-6 h-6 text-purple-400" />
+            <span className="font-bold bg-gradient-to-r from-purple-400 to-pink-600 bg-clip-text text-transparent">Kinetic Canvas</span>
           </Link>
         </div>
 
@@ -27,10 +27,10 @@ export default function Header() {
             Community
           </Link>
           <Link
-            href="https://github.com/fal-ai-community/video-starter-kit"
+            href="#pricing"
             className="text-sm text-gray-400 hover:text-white transition-colors"
           >
-            GitHub
+            Pricing
           </Link>
         </nav>
 

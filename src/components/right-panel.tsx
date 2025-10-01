@@ -1,6 +1,8 @@
 "use client";
 
 import { useJobCreator } from "@/data/mutations";
+import { useReplicateJobCreator } from "@/data/replicateMutations";
+import { config } from "@/lib/config";
 import { queryKeys, useProject, useProjectMediaItems } from "@/data/queries";
 import type { MediaItem } from "@/data/schema";
 import {
@@ -10,29 +12,35 @@ import {
   useVideoProjectStore,
 } from "@/data/store";
 import { AVAILABLE_ENDPOINTS, type InputAsset } from "@/lib/fal";
+import { useQueryClient } from "@tanstack/react-query";
+import { useToast } from "@/hooks/use-toast";
+import { useEffect, useMemo, useState } from "react";
 import {
-  ImageIcon,
-  MicIcon,
-  MusicIcon,
-  LoaderCircleIcon,
-  VideoIcon,
+  Image,
+  Mic,
+  Music,
+  Loader2,
+  Video,
   ArrowLeft,
-  TrashIcon,
-  WandSparklesIcon,
-  CrossIcon,
-  XIcon,
+  Trash,
+  Wand2,
+  X,
+  Scissors,
+  Activity,
 } from "lucide-react";
+
+// Import AI components
+import { VideoGenerationPanel } from "./ai/video-generation-panel";
+import { VideoEditor } from "./ai/video-editor";
+import { VideoAnalysis } from "./ai/video-analysis";
 import { MediaItemRow } from "./media-panel";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
 import { Textarea } from "./ui/textarea";
-
-import { useEffect, useMemo, useState } from "react";
 import { useUploadThing } from "@/lib/uploadthing";
 import type { ClientUploadedFileData } from "uploadthing/types";
 import { db } from "@/data/db";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { useToast } from "@/hooks/use-toast";
+import { useMutation } from "@tanstack/react-query";
 import {
   assetKeyMap,
   cn,
@@ -56,6 +64,7 @@ import { LoadingIcon } from "./ui/icons";
 import { getMediaMetadata } from "@/lib/ffmpeg";
 import CameraMovement from "./camera-control";
 import VideoFrameSelector from "./video-frame-selector";
+import { ModelPicker } from "./ModelPicker";
 
 type ModelEndpointPickerProps = {
   mediaType: string;
@@ -79,9 +88,7 @@ function ModelEndpointPicker({
       <SelectContent>
         {endpoints.map((endpoint) => (
           <SelectItem key={endpoint.endpointId} value={endpoint.endpointId}>
-            <div className="flex flex-row gap-2 items-center">
-              <span>{endpoint.label}</span>
-            </div>
+            {endpoint.name}
           </SelectItem>
         ))}
       </SelectContent>
@@ -89,111 +96,84 @@ function ModelEndpointPicker({
   );
 }
 
+type TabType = "generation" | "media";
+
+type RightPanelProps = {
+  generateDialogOpen?: boolean;
+  handleOnOpenChange?: (open: boolean) => void;
+};
+
 export default function RightPanel({
-  onOpenChange,
-}: {
-  onOpenChange?: (open: boolean) => void;
-}) {
-  const videoProjectStore = useVideoProjectStore((s) => s);
-  const {
-    generateData,
-    setGenerateData,
-    resetGenerateData,
-    endpointId,
-    setEndpointId,
-  } = videoProjectStore;
-
-  const [tab, setTab] = useState<string>("generation");
-  const [assetMediaType, setAssetMediaType] = useState("all");
+  generateDialogOpen = false,
+  handleOnOpenChange,
+}: RightPanelProps) {
   const projectId = useProjectId();
-  const openGenerateDialog = useVideoProjectStore((s) => s.openGenerateDialog);
-  const generateDialogOpen = useVideoProjectStore((s) => s.generateDialogOpen);
-  const closeGenerateDialog = useVideoProjectStore(
-    (s) => s.closeGenerateDialog,
-  );
-  const queryClient = useQueryClient();
-
-  const handleOnOpenChange = (isOpen: boolean) => {
-    if (!isOpen) {
-      closeGenerateDialog();
-      resetGenerateData();
-      return;
-    }
-    onOpenChange?.(isOpen);
-    openGenerateDialog();
-  };
-
   const { data: project } = useProject(projectId);
-
+  const { data: mediaItems } = useProjectMediaItems(projectId);
   const { toast } = useToast();
-  const enhance = useMutation({
-    mutationFn: async () => {
-      return enhancePrompt(generateData.prompt, {
-        type: mediaType,
-        project,
-      });
-    },
-    onSuccess: (enhancedPrompt) => {
-      setGenerateData({ prompt: enhancedPrompt });
-    },
-    onError: (error) => {
-      console.warn("Failed to create suggestion", error);
-      toast({
-        title: "Failed to enhance prompt",
-        description: "There was an unexpected error. Try again.",
-      });
-    },
+  const queryClient = useQueryClient();
+  const videoProjectStore = useVideoProjectStore();
+
+  const [tab, setTab] = useState<TabType>("generation");
+  const [mediaType, setMediaType] = useState<MediaType>("video");
+  const [endpointId, setEndpointId] = useState<string>("");
+  const [generateData, setGenerateData] = useState<GenerateData>({
+    prompt: "",
   });
 
-  const { data: mediaItems = [] } = useProjectMediaItems(projectId);
-  const mediaType = useVideoProjectStore((s) => s.generateMediaType);
-  const setMediaType = useVideoProjectStore((s) => s.setGenerateMediaType);
-
   const endpoint = useMemo(
-    () =>
-      AVAILABLE_ENDPOINTS.find(
-        (endpoint) => endpoint.endpointId === endpointId,
-      ),
+    () => AVAILABLE_ENDPOINTS.find((e) => e.endpointId === endpointId),
     [endpointId],
   );
-  const handleMediaTypeChange = (mediaType: string) => {
-    setMediaType(mediaType as MediaType);
-    const endpoint = AVAILABLE_ENDPOINTS.find(
-      (endpoint) => endpoint.category === mediaType,
-    );
 
-    const initialInput = endpoint?.initialInput || {};
-
-    if (
-      (mediaType === "video" &&
-        endpoint?.endpointId === "fal-ai/hunyuan-video") ||
-      mediaType !== "video"
-    ) {
-      setGenerateData({ image: null, ...initialInput });
-    } else {
-      setGenerateData({ ...initialInput });
-    }
-
-    setEndpointId(endpoint?.endpointId ?? AVAILABLE_ENDPOINTS[0].endpointId);
+  const handleOnPromptChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    setGenerateData({ ...generateData, prompt: e.target.value });
   };
-  // TODO improve model-specific parameters
+
+  const handleOnModelChange = (value: string) => {
+    setEndpointId(value);
+  };
+
+  const handleOnMediaTypeChange = (value: MediaType) => {
+    setMediaType(value);
+    setEndpointId("");
+  };
+
+  const handleOnVoiceChange = (value: string) => {
+    setGenerateData({ ...generateData, voice: value });
+  };
+
+  const handleOnDurationChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setGenerateData({ ...generateData, duration: Number(e.target.value) });
+  };
+
+  const handleOnCameraControlChange = (value: any) => {
+    setGenerateData({ ...generateData, advanced_camera_control: value });
+  };
+
+  const handleOnFrameChange = (value: any) => {
+    setGenerateData({ ...generateData, images: value });
+  };
+
+  const handleOnModelPickerChange = (modelId: string, provider: string) => {
+    // Construct the full model ID with provider prefix if needed
+    const fullModelId = provider ? `${provider}:${modelId}` : modelId;
+    setGenerateData({ ...generateData, modelId: fullModelId });
+  };
+
   type InputType = {
     prompt: string;
-    image_url?: File | string | null;
-    video_url?: File | string | null;
-    audio_url?: File | string | null;
-    image_size?: { width: number; height: number } | string;
+    image_url?: string;
+    video_url?: string;
+    audio_url?: string;
+    reference_audio_url?: string;
+    image_size?: string | { width: number; height: number };
     aspect_ratio?: string;
     seconds_total?: number;
     voice?: string;
     input?: string;
-    reference_audio_url?: File | string | null;
-    images?: {
-      start_frame_num: number;
-      image_url: string | File;
-    }[];
+    images?: string[];
     advanced_camera_control?: {
-      movement_value: number;
       movement_type: string;
     };
   };
@@ -256,39 +236,220 @@ export default function RightPanel({
           remove_silence: true,
         }
       : {};
-  const createJob = useJobCreator({
+  // Determine if we're using a Replicate model
+  const isReplicateModel = endpointId.startsWith('replicate:');
+  const modelId = isReplicateModel ? endpointId.replace('replicate:', '') : endpointId;
+
+  // Use the appropriate job creator based on the model provider
+  const falJob = useJobCreator({
     projectId,
     endpointId:
       generateData.image && mediaType === "video"
         ? `${endpointId}/image-to-video`
         : endpointId,
-    mediaType,
-    input: {
-      ...(endpoint?.initialInput || {}),
-      ...mapInputKey(input, endpoint?.inputMap || {}),
-      ...extraInput,
-    },
   });
 
-  const handleOnGenerate = async () => {
-    await createJob.mutateAsync({} as any, {
-      onSuccess: async () => {
-        if (!createJob.isError) {
-          handleOnOpenChange(false);
-        }
-      },
-      onError: (error) => {
-        console.warn("Failed to create job", error);
+  // Memoize the parameters for the Replicate job creator to avoid unnecessary recreations
+  const replicateJobParams = useMemo(() => ({
+    projectId,
+    modelId: generateData.modelId || modelId,
+    mediaType: mediaType,
+    input: {
+      prompt: generateData.prompt,
+      ...generateData.extraInput,
+    },
+  }), [projectId, generateData.modelId, modelId, mediaType, generateData.prompt, generateData.extraInput]);
+  
+  // Initialize the Replicate job creator with memoized parameters
+  const createReplicateJob = useReplicateJobCreator(replicateJobParams);
+
+  // Use the appropriate job creators
+  const [isGenerating, setIsGenerating] = useState(false);
+
+  const handleOnGenerate = async (genData: GenerateData) => {
+    // Use a different variable name to avoid potential conflicts
+    const generateData = { ...genData };
+    try {
+      // Use either the stored modelId in generateData or construct it from endpointId
+      const modelIdToUse = generateData.modelId || endpointId;
+      
+      if (!modelIdToUse) {
         toast({
-          title: "Failed to generate media",
-          description: "Please ensure you've set your FAL KEY in the settings.",
+          title: "Error",
+          description: "No model selected",
+          variant: "destructive",
         });
-      },
-    });
+        return;
+      }
+      
+      // Ensure generateData has the modelId
+      if (!generateData.modelId) {
+        setGenerateData({ ...generateData, modelId: modelIdToUse });
+      }
+      
+      // Set loading state
+      setIsGenerating(true);
+
+      // Determine the model provider from the modelId
+      const modelIdString = generateData.modelId || '';
+      const [modelProvider, modelIdPart] = modelIdString.includes(":")
+        ? (modelIdString.split(":") as [string, string])
+        : ["fal", modelIdString];
+
+      // For fal.ai models, find the endpoint
+      const endpoint = modelProvider === "fal"
+        ? AVAILABLE_ENDPOINTS.find((e) => e.endpointId === modelIdPart)
+        : null;
+
+      if (!endpoint && modelProvider === "fal") {
+        throw new Error(`No endpoint found for model: ${modelId}`);
+      }
+      
+      // Set the media type based on the endpoint category
+      const mediaType = endpoint?.category === 'image' ? 'image' : 'video';
+
+      // Handle fal.ai models
+      if (modelProvider === "fal" && endpoint) {
+        try {
+          // Prepare the input for fal.ai
+          const input = {
+            ...(endpoint.initialInput || {}),
+            prompt: generateData.prompt,
+            ...generateData.extraInput,
+          };
+          
+          // Use the fal.ai client to generate content
+          const result = await fal.subscribe(endpoint.endpointId, { input });
+          
+          // Save the result to the media library
+          if (result) {
+            const mediaUrl = result.media?.url || result.url;
+            
+            if (mediaUrl) {
+              await db.mediaItems.add({
+                id: `fal-${Date.now()}`,
+                projectId,
+                type: mediaType,
+                url: mediaUrl,
+                createdAt: new Date().toISOString(),
+                metadata: {
+                  model: endpoint.endpointId,
+                  prompt: generateData.prompt,
+                  ...result.metadata,
+                },
+              });
+              
+              // Invalidate the media items query to refresh the UI
+              queryClient.invalidateQueries({
+                queryKey: queryKeys.projectMediaItems(projectId),
+              });
+              
+              toast({
+                title: "🎥 Generation completed",
+                description: `Your ${mediaType} has been generated successfully!`,
+              });
+            }
+          }
+        } catch (error) {
+          console.error('Error generating with fal.ai:', error);
+          toast({
+            title: "Failed to generate content",
+            description: error instanceof Error ? error.message : 'An unknown error occurred',
+            variant: 'destructive',
+          });
+          throw error;
+        } finally {
+          // Reset loading state
+          setIsGenerating(false);
+        }
+        
+      } else if (modelProvider === 'replicate') {
+        try {
+          await createReplicateJob.mutateAsync({
+            modelId,
+            input: {
+              prompt: generateData.prompt,
+              ...generateData.extraInput,
+            },
+          });
+          
+          // Show success message for Replicate job creation
+          toast({
+            title: "Job submitted successfully",
+            description: "Your content is being generated with Replicate. Check the media library for results.",
+          });
+        } catch (error) {
+          console.error('Error creating Replicate job:', error);
+          toast({
+            title: 'Failed to create job',
+            description: error instanceof Error ? error.message : 'An unknown error occurred',
+            variant: 'destructive',
+          });
+          throw error;
+        } finally {
+          // Reset loading state
+          setIsGenerating(false);
+        }
+      } else {
+        // Handle other model providers or unknown providers
+        try {
+          // Use the fal.ai job creator as a fallback
+          await falJob.mutateAsync({
+            input: {
+              prompt: enhancePrompt(generateData.prompt),
+              ...input,
+              ...extraInput,
+            },
+            onSuccess: () => {
+              toast({
+                title: "Job submitted successfully",
+                description: "Your content is being generated.",
+              });
+            },
+            onError: (error) => {
+              console.error("Error creating fal.ai job:", error);
+              toast({
+                title: "Failed to submit job",
+                description: error instanceof Error ? error.message : "An unknown error occurred",
+                variant: "destructive",
+              });
+            },
+          });
+        } catch (error) {
+          console.error('Error creating job:', error);
+          toast({
+            title: 'Failed to create job',
+            description: error instanceof Error ? error.message : 'An unknown error occurred',
+            variant: 'destructive',
+          });
+          throw error;
+        } finally {
+          // Reset loading state
+          setIsGenerating(false);
+        }
+      }
+      
+      // Close the panel if needed
+      handleOnOpenChange?.(false);
+      
+    } catch (error: unknown) {
+      // Error handling is done in the individual model handlers
+      // This catch block is for any unhandled errors
+      console.error("Error in handleOnGenerate:", error);
+      toast({
+        title: "An error occurred",
+        description: error instanceof Error ? error.message : "Please try again later.",
+        variant: "destructive",
+      });
+    }
   };
 
   useEffect(() => {
     videoProjectStore.onGenerate = handleOnGenerate;
+    // Clean up the onGenerate handler when the component unmounts
+    return () => {
+      videoProjectStore.onGenerate = undefined;
+    };
   }, [handleOnGenerate]);
 
   const handleSelectMedia = (media: MediaItem) => {
@@ -381,10 +542,10 @@ export default function RightPanel({
     <div
       className={cn(
         "flex flex-col border-l border-border w-[450px] z-50 transition-all duration-300 absolute top-0 h-full bg-background",
-        generateDialogOpen ? "right-0" : "-right-[450px]",
+        generateDialogOpen ? "right-0" : "-right-[450px]"
       )}
     >
-      <div className="flex-1 p-4 flex flex-col gap-4 border-b border-border h-full overflow-hidden relative">
+      <div className="flex-1 p-4 flex flex-col gap-4 border-b border-border h-full overflow-y-auto relative">
         <div className="flex flex-row items-center justify-between">
           <h2 className="text-sm text-muted-foreground font-semibold flex-1">
             Generate Media
@@ -395,341 +556,94 @@ export default function RightPanel({
             onClick={() => handleOnOpenChange(false)}
             className="flex items-center gap-2"
           >
-            <XIcon className="w-6 h-6" />
+            <X className="h-4 w-4" />
           </Button>
         </div>
-        <div className="w-full flex flex-col">
-          <div className="flex w-full gap-2">
-            <Button
-              variant="ghost"
-              onClick={() => handleMediaTypeChange("image")}
-              className={cn(
-                mediaType === "image" && "bg-white/10",
-                "h-14 flex flex-col justify-center w-1/4 rounded-md gap-2 items-center",
-              )}
-            >
-              <ImageIcon className="w-4 h-4 opacity-50" />
-              <span className="text-[10px]">Image</span>
-            </Button>
-            <Button
-              variant="ghost"
-              onClick={() => handleMediaTypeChange("video")}
-              className={cn(
-                mediaType === "video" && "bg-white/10",
-                "h-14 flex flex-col justify-center w-1/4 rounded-md gap-2 items-center",
-              )}
-            >
-              <VideoIcon className="w-4 h-4 opacity-50" />
-              <span className="text-[10px]">Video</span>
-            </Button>
-            <Button
-              variant="ghost"
-              onClick={() => handleMediaTypeChange("voiceover")}
-              className={cn(
-                mediaType === "voiceover" && "bg-white/10",
-                "h-14 flex flex-col justify-center w-1/4 rounded-md gap-2 items-center",
-              )}
-            >
-              <MicIcon className="w-4 h-4 opacity-50" />
-              <span className="text-[10px]">Voiceover</span>
-            </Button>
-            <Button
-              variant="ghost"
-              onClick={() => handleMediaTypeChange("music")}
-              className={cn(
-                mediaType === "music" && "bg-white/10",
-                "h-14 flex flex-col justify-center w-1/4 rounded-md gap-2 items-center",
-              )}
-            >
-              <MusicIcon className="w-4 h-4 opacity-50" />
-              <span className="text-[10px]">Music</span>
-            </Button>
-          </div>
-          <div className="flex flex-col gap-2 mt-2 justify-start font-medium text-base">
-            <div className="text-muted-foreground">Using</div>
-            <ModelEndpointPicker
-              mediaType={mediaType}
-              value={endpointId}
-              onValueChange={(endpointId) => {
-                resetGenerateData();
-                setEndpointId(endpointId);
 
-                const endpoint = AVAILABLE_ENDPOINTS.find(
-                  (endpoint) => endpoint.endpointId === endpointId,
-                );
+        <div className="flex flex-row gap-2 flex-wrap">
+          <Button
+            variant={tab === "generation" ? "default" : "outline"}
+            size="sm"
+            onClick={() => setTab("generation")}
+            className="flex-1"
+          >
+            <Wand2 className="h-4 w-4 mr-2" />
+            Generation
+          </Button>
+          <Button
+            variant={tab === "editor" ? "default" : "outline"}
+            size="sm"
+            onClick={() => setTab("editor")}
+            className="flex-1"
+          >
+            <Scissors className="h-4 w-4 mr-2" />
+            AI Editor
+          </Button>
+          <Button
+            variant={tab === "analysis" ? "default" : "outline"}
+            size="sm"
+            onClick={() => setTab("analysis")}
+            className="flex-1"
+          >
+            <Activity className="h-4 w-4 mr-2" />
+            Analysis
+          </Button>
+          <Button
+            variant={tab === "media" ? "default" : "outline"}
+            size="sm"
+            onClick={() => setTab("media")}
+            className="flex-1"
+          >
+            <Image className="h-4 w-4 mr-2" />
+            Media
+          </Button>
+        </div>
 
-                const initialInput = endpoint?.initialInput || {};
-                setGenerateData({ ...initialInput });
-              }}
-            />
-          </div>
-        </div>
-        <div className="flex flex-col gap-2 relative">
-          {endpoint?.inputAsset?.map((asset, index) => (
-            <div key={getAssetType(asset)} className="flex w-full">
-              <div className="flex flex-col w-full" key={getAssetType(asset)}>
-                <div className="flex justify-between">
-                  <h4 className="capitalize text-muted-foreground mb-2">
-                    {getAssetType(asset)} Reference
-                  </h4>
-                  {tab === `asset-${getAssetType(asset)}` && (
-                    <Button
-                      variant="ghost"
-                      onClick={() => setTab("generation")}
-                      size="sm"
-                    >
-                      <ArrowLeft /> Back
-                    </Button>
-                  )}
-                </div>
-                {(tab === "generation" ||
-                  tab !== `asset-${getAssetType(asset)}`) && (
-                  <>
-                    {!generateData[getAssetKey(asset)] && (
-                      <div className="flex flex-col gap-2 justify-between">
-                        <Button
-                          variant="ghost"
-                          onClick={() => {
-                            setTab(`asset-${getAssetType(asset)}`);
-                            setAssetMediaType(getAssetType(asset) ?? "all");
-                          }}
-                          className="cursor-pointer min-h-[30px] flex flex-col items-center justify-center border border-dashed border-border rounded-md px-4"
-                        >
-                          <span className="text-muted-foreground text-xs text-center text-nowrap">
-                            Select
-                          </span>
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          disabled={isUploading}
-                          className="cursor-pointer min-h-[30px] flex flex-col items-center justify-center border border-dashed border-border rounded-md px-4"
-                          asChild
-                        >
-                          <label htmlFor="assetUploadButton">
-                            <Input
-                              id="assetUploadButton"
-                              type="file"
-                              className="hidden"
-                              onChange={handleFileUpload}
-                              multiple={false}
-                              disabled={isUploading}
-                              accept="image/*,audio/*,video/*"
-                            />
-                            {isUploading ? (
-                              <LoaderCircleIcon className="w-4 h-4 opacity-50 animate-spin" />
-                            ) : (
-                              <span className="text-muted-foreground text-xs text-center text-nowrap">
-                                Upload
-                              </span>
-                            )}
-                          </label>
-                        </Button>
-                      </div>
-                    )}
-                    {generateData[getAssetKey(asset)] && (
-                      <div className="cursor-pointer overflow-hidden relative w-full flex flex-col items-center justify-center border border-dashed border-border rounded-md">
-                        <WithTooltip tooltip="Remove media">
-                          <button
-                            type="button"
-                            className="p-1 rounded hover:bg-black/50 absolute top-1 z-50 bg-black/80 right-1 group-hover:text-white"
-                            onClick={() =>
-                              setGenerateData({
-                                [getAssetKey(asset)]: undefined,
-                              })
-                            }
-                          >
-                            <TrashIcon className="w-3 h-3 stroke-2" />
-                          </button>
-                        </WithTooltip>
-                        {generateData[getAssetKey(asset)] && (
-                          <SelectedAssetPreview
-                            asset={asset}
-                            data={generateData}
-                          />
-                        )}
-                      </div>
-                    )}
-                  </>
-                )}
-                {tab === `asset-${getAssetType(asset)}` && (
-                  <div className="flex items-center gap-2 flex-wrap overflow-y-auto max-h-80 divide-y divide-border">
-                    {mediaItems
-                      .filter((media) => {
-                        if (assetMediaType === "all") return true;
-                        if (
-                          assetMediaType === "audio" &&
-                          (media.mediaType === "voiceover" ||
-                            media.mediaType === "music")
-                        )
-                          return true;
-                        return media.mediaType === assetMediaType;
-                      })
-                      .map((job) => (
-                        <MediaItemRow
-                          draggable={false}
-                          key={job.id}
-                          data={job}
-                          onOpen={handleSelectMedia}
-                          className="cursor-pointer"
-                        />
-                      ))}
-                  </div>
-                )}
-              </div>
+        {tab === "generation" ? (
+          <VideoGenerationPanel 
+            mediaType={mediaType}
+            generateData={generateData}
+            isGenerating={isGenerating}
+            onMediaTypeChange={handleOnMediaTypeChange}
+            onModelPickerChange={handleOnModelPickerChange}
+            onPromptChange={handleOnPromptChange}
+            onDurationChange={handleOnDurationChange}
+            onVoiceChange={handleOnVoiceChange}
+            onCameraControlChange={handleOnCameraControlChange}
+            onFrameChange={handleOnFrameChange}
+            onGenerate={() => videoProjectStore.onGenerate?.(generateData)}
+          />
+        ) : tab === "editor" ? (
+          <VideoEditor />
+        ) : tab === "analysis" ? (
+          <VideoAnalysis />
+        ) : (
+          <div className="flex flex-col gap-4">
+            <div className="flex flex-col gap-2">
+              <Label>Upload Media</Label>
+              <Input
+                type="file"
+                onChange={handleFileUpload}
+                accept="image/*,video/*,audio/*"
+                disabled={isUploading}
+              />
             </div>
-          ))}
-          {endpoint?.prompt !== false && (
-            <div className="relative bg-border rounded-lg pb-10 placeholder:text-base w-full  resize-none">
-              <Textarea
-                className="text-base shadow-none focus:!ring-0 placeholder:text-base w-full h-32 resize-none"
-                placeholder="Imagine..."
-                value={generateData.prompt}
-                rows={3}
-                onChange={(e) => setGenerateData({ prompt: e.target.value })}
-              />
-              <WithTooltip tooltip="Enhance your prompt with AI-powered suggestions.">
-                <div className="absolute bottom-2 right-2">
-                  <Button
-                    variant="secondary"
-                    disabled={enhance.isPending}
-                    className="bg-purple-400/10 text-purple-400 text-xs rounded-full h-6 px-3"
-                    onClick={() => enhance.mutate()}
-                  >
-                    {enhance.isPending ? (
-                      <LoadingIcon />
-                    ) : (
-                      <WandSparklesIcon className="opacity-50" />
-                    )}
-                    Enhance Prompt
-                  </Button>
-                </div>
-              </WithTooltip>
-            </div>
-          )}
-        </div>
-        {tab === "generation" && (
-          <div className="flex flex-col gap-2 mb-2">
-            {endpoint?.imageForFrame && (
-              <VideoFrameSelector
-                mediaItems={mediaItems}
-                onChange={(
-                  images: {
-                    start_frame_num: number;
-                    image_url: string | File;
-                  }[],
-                ) => setGenerateData({ images })}
-              />
-            )}
-            {endpoint?.cameraControl && (
-              <CameraMovement
-                value={generateData.advanced_camera_control}
-                onChange={(val) =>
-                  setGenerateData({
-                    advanced_camera_control: val
-                      ? {
-                          movement_value: val.value,
-                          movement_type: val.movement,
-                        }
-                      : undefined,
-                  })
-                }
-              />
-            )}
-            {mediaType === "music" && endpointId === "fal-ai/playht/tts/v3" && (
-              <div className="flex-1 flex flex-row gap-2">
-                {mediaType === "music" && (
-                  <div className="flex flex-row items-center gap-1">
-                    <Label>Duration</Label>
-                    <Input
-                      className="w-12 text-center tabular-nums [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-                      min={5}
-                      max={30}
-                      step={1}
-                      type="number"
-                      value={generateData.duration}
-                      onChange={(e) =>
-                        setGenerateData({
-                          duration: Number.parseInt(e.target.value),
-                        })
-                      }
-                    />
-                    <span>s</span>
-                  </div>
-                )}
-                {endpointId === "fal-ai/playht/tts/v3" && (
-                  <VoiceSelector
-                    value={generateData.voice}
-                    onValueChange={(voice) => {
-                      setGenerateData({ voice });
-                    }}
+
+            <div className="flex flex-col gap-2">
+              <Label>Media Library</Label>
+              <div className="flex flex-col gap-2 max-h-[400px] overflow-y-auto">
+                {mediaItems?.map((media) => (
+                  <MediaItemRow
+                    key={media.id}
+                    media={media}
+                    onClick={() => handleSelectMedia(media)}
                   />
-                )}
+                ))}
               </div>
-            )}
-            <div className="flex flex-row gap-2">
-              <Button
-                className="w-full"
-                disabled={enhance.isPending || createJob.isPending}
-                onClick={handleOnGenerate}
-              >
-                Generate
-              </Button>
             </div>
           </div>
         )}
-        <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-background to-transparent via-background via-60% h-8 pointer-events-none" />
       </div>
     </div>
   );
 }
-
-const SelectedAssetPreview = ({
-  data,
-  asset,
-}: {
-  data: GenerateData;
-  asset: InputAsset;
-}) => {
-  const assetType = getAssetType(asset);
-  const assetKey = getAssetKey(asset);
-
-  if (!data[assetKey]) return null;
-
-  return (
-    <>
-      {assetType === "audio" && (
-        <audio
-          src={
-            data[assetKey] && typeof data[assetKey] !== "string"
-              ? URL.createObjectURL(data[assetKey])
-              : data[assetKey] || ""
-          }
-          controls={true}
-        />
-      )}
-      {assetType === "video" && (
-        <video
-          src={
-            data[assetKey] && typeof data[assetKey] !== "string"
-              ? URL.createObjectURL(data[assetKey])
-              : data[assetKey] || ""
-          }
-          controls={false}
-          style={{ pointerEvents: "none" }}
-        />
-      )}
-      {assetType === "image" && (
-        <img
-          id="image-preview"
-          src={
-            data[assetKey] && typeof data[assetKey] !== "string"
-              ? URL.createObjectURL(data[assetKey])
-              : data[assetKey] || ""
-          }
-          alt="Media Preview"
-        />
-      )}
-    </>
-  );
-};

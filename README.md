@@ -5,7 +5,7 @@
 [![Next.js](https://img.shields.io/badge/Next.js-14-black)](https://nextjs.org)
 [![Remotion](https://img.shields.io/badge/Remotion-latest-blue)](https://remotion.dev)
 
-A powerful starter kit for building AI-powered video applications. Built with Next.js, Remotion, and fal.ai, this toolkit simplifies the complexities of working with AI video models in the browser.
+A powerful starter kit for building AI-powered video applications. Built with Next.js, Remotion, and fal.ai, this toolkit simplifies the complexities of working with AI video models in the browser. Now with support for the latest models including Flux, Kontext, Seedance, Seedream, and more!
 
 ![AI Video Starter Kit](https://github.com/fal-ai-community/video-starter-kit/blob/main/src/app/opengraph-image.png?raw=true)
 
@@ -13,6 +13,10 @@ A powerful starter kit for building AI-powered video applications. Built with Ne
 
 - 🎬 **Browser-Native Video Processing**: Seamless video handling and composition in the browser
 - 🤖 **AI Model Integration**: Direct access to state-of-the-art video models through fal.ai
+  - Seedance 1 Lite for image-to-video generation with start and end frames
+  - Flux and Seedream for high-quality text-to-image generation
+  - Qwen Edit and Kontext Pro for advanced image editing
+  - Nano Banana for fast and efficient image generation and editing
   - Minimax for video generation
   - Hunyuan for visual synthesis
   - LTX for video manipulation

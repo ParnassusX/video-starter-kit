@@ -7,12 +7,12 @@ import {
 import type { MediaItem, VideoKeyFrame, VideoTrack } from "@/data/schema";
 import { cn, resolveDuration, resolveMediaUrl, trackIcons } from "@/lib/utils";
 import {
-  keepPreviousData,
   useMutation,
   useQuery,
   useQueryClient,
+  keepPreviousData,
 } from "@tanstack/react-query";
-import { TrashIcon } from "lucide-react";
+import { Trash } from "lucide-react";
 import {
   type HTMLAttributes,
   type MouseEventHandler,
@@ -354,7 +354,7 @@ export function VideoTrackView({
                   className="p-1 rounded hover:bg-black/5 group-hover:text-white"
                   onClick={handleOnDelete}
                 >
-                  <TrashIcon className="w-3 h-3 text-white" />
+                  <Trash className="w-3 h-3 text-white" />
                 </button>
               </WithTooltip>
             </div>

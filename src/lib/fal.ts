@@ -1,11 +1,18 @@
 "use client";
 
 import { createFalClient } from "@fal-ai/client";
+import { config } from "./config";
 
+// Initialize the fal.ai client with environment configuration
 export const fal = createFalClient({
-  credentials: () => localStorage?.getItem("falKey") as string,
+  credentials: config.fal.apiKey,
   proxyUrl: "/api/fal",
 });
+
+// Helper function to check if fal.ai is properly configured
+export function isFalConfigured(): boolean {
+  return !!config.fal.apiKey;
+}
 
 export type InputAsset =
   | "video"
@@ -32,6 +39,7 @@ export type ApiInfo = {
 };
 
 export const AVAILABLE_ENDPOINTS: ApiInfo[] = [
+  // Image Generation Models
   {
     endpointId: "fal-ai/flux/dev",
     label: "Flux Dev",
@@ -40,16 +48,37 @@ export const AVAILABLE_ENDPOINTS: ApiInfo[] = [
     category: "image",
   },
   {
+    endpointId: "fal-ai/seedream/v1",
+    label: "Seedream V1",
+    description: "High quality text-to-image generation by Bytedance",
+    cost: "",
+    category: "image",
+  },
+  {
+    endpointId: "fal-ai/imagen/v2",
+    label: "Imagen V2",
+    description: "Google's advanced text-to-image model",
+    cost: "",
+    category: "image",
+  },
+  {
+    endpointId: "fal-ai/nanobanana/text-to-image",
+    label: "Nano Banana Text-to-Image",
+    description: "Fast and efficient text-to-image generation",
+    cost: "",
+    category: "image",
+  },
+  {
     endpointId: "fal-ai/flux/schnell",
     label: "Flux Schnell",
-    description: "Generate a video from a text prompt",
+    description: "Fast text-to-image generation with good quality",
     cost: "",
     category: "image",
   },
   {
     endpointId: "fal-ai/flux-pro/v1.1-ultra",
     label: "Flux Pro 1.1 Ultra",
-    description: "Generate a video from a text prompt",
+    description: "High quality text-to-image generation",
     cost: "",
     category: "image",
   },
@@ -60,6 +89,46 @@ export const AVAILABLE_ENDPOINTS: ApiInfo[] = [
     cost: "",
     category: "image",
   },
+  
+  // Kontext Models (Image Editing)
+  {
+    endpointId: "fal-ai/flux-pro/kontext",
+    label: "Kontext Pro (Image Editing)",
+    description: "Advanced in-context image editing with text instructions",
+    cost: "",
+    category: "image",
+    inputAsset: ["image"],
+    prompt: true,
+  },
+  {
+    endpointId: "fal-ai/qwen-edit",
+    label: "Qwen Edit",
+    description: "Powerful image editing with Qwen VL model",
+    cost: "",
+    category: "image",
+    inputAsset: ["image"],
+    prompt: true,
+  },
+  {
+    endpointId: "fal-ai/nanobanana/image-to-image",
+    label: "Nano Banana Image-to-Image",
+    description: "Fast and efficient image editing",
+    cost: "",
+    category: "image",
+    inputAsset: ["image"],
+    prompt: true,
+  },
+  {
+    endpointId: "fal-ai/flux-pro/kontext/max/multi",
+    label: "Kontext Max (Multi-Edit)",
+    description: "Most advanced image editing with multi-edit capabilities",
+    cost: "",
+    category: "image",
+    inputAsset: ["image"],
+    prompt: true,
+  },
+  
+  // Video Generation Models
   {
     endpointId: "fal-ai/minimax/video-01-live",
     label: "Minimax Video 01 Live",
@@ -70,7 +139,7 @@ export const AVAILABLE_ENDPOINTS: ApiInfo[] = [
   },
   {
     endpointId: "fal-ai/hunyuan-video",
-    label: "Hunyuan",
+    label: "Hunyuan Video",
     description: "High visual quality, motion diversity and text alignment",
     cost: "",
     category: "video",
@@ -78,7 +147,7 @@ export const AVAILABLE_ENDPOINTS: ApiInfo[] = [
   {
     endpointId: "fal-ai/kling-video/v1.5/pro",
     label: "Kling 1.5 Pro",
-    description: "High quality video",
+    description: "High quality video generation",
     cost: "",
     category: "video",
     inputAsset: ["image"],
@@ -86,11 +155,47 @@ export const AVAILABLE_ENDPOINTS: ApiInfo[] = [
   {
     endpointId: "fal-ai/kling-video/v1/standard/text-to-video",
     label: "Kling 1.0 Standard",
-    description: "High quality video",
+    description: "Standard quality video generation",
     cost: "",
     category: "video",
     inputAsset: [],
     cameraControl: true,
+  },
+  
+  // Bytedance Video Models
+  {
+    endpointId: "fal-ai/bytedance/seedance/v1/pro/text-to-video",
+    label: "Bytedance Seedance Pro",
+    description: "High quality text-to-video generation by Bytedance",
+    cost: "~$0.62 per 5s 1080p video",
+    category: "video",
+    prompt: true,
+  },
+  {
+    endpointId: "fal-ai/bytedance/seedance/v1/lite/text-to-video",
+    label: "Bytedance Seedance 1 Lite",
+    description: "Lighter version of Seedance for text-to-video generation",
+    cost: "",
+    category: "video",
+    prompt: true,
+  },
+  {
+    endpointId: "fal-ai/bytedance/seedance/v1/lite/image-to-video",
+    label: "Bytedance Seedance 1 Lite (Image-to-Video)",
+    description: "Generate videos from start and end images",
+    cost: "",
+    category: "video",
+    inputAsset: [
+      {
+        type: "image",
+        key: "start_image"
+      },
+      {
+        type: "image",
+        key: "end_image"
+      }
+    ],
+    prompt: true,
   },
   {
     endpointId: "fal-ai/luma-dream-machine",

@@ -8,7 +8,7 @@ import { useToast } from "@/hooks/use-toast";
 import { createProjectSuggestion } from "@/lib/project";
 import { cn, rememberLastProjectId } from "@/lib/utils";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { FileVideoIcon, FolderOpenIcon, WandSparklesIcon } from "lucide-react";
+import { FileVideoIcon, FolderOpenIcon, Wand2 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Logo } from "./logo";
 import { Button } from "./ui/button";
@@ -158,7 +158,7 @@ export function ProjectDialog({ onOpenChange, ...props }: ProjectDialogProps) {
                   {suggestProject.isPending ? (
                     <LoadingIcon />
                   ) : (
-                    <WandSparklesIcon className="opacity-50" />
+                    <Wand2 className="opacity-50" />
                   )}
                   Generate
                 </Button>

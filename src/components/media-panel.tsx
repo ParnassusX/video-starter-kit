@@ -7,13 +7,13 @@ import { cn, resolveMediaUrl, trackIcons } from "@/lib/utils";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { formatDistanceToNow } from "date-fns";
 import {
-  CircleXIcon,
-  GripVerticalIcon,
-  HourglassIcon,
-  ImageIcon,
-  MicIcon,
-  MusicIcon,
-  VideoIcon,
+  X,
+  GripVertical,
+  Hourglass,
+  Image,
+  Mic,
+  Music,
+  Video,
 } from "lucide-react";
 import {
   type DragEventHandler,
@@ -148,7 +148,7 @@ export function MediaItemRow({
             },
           )}
         >
-          <GripVerticalIcon className="w-4 h-4" />
+          <GripVertical className="w-4 h-4" />
         </div>
       )}
       <div className="w-16 h-16 aspect-square relative rounded overflow-hidden border border-transparent hover:border-accent bg-accent transition-all">
@@ -164,20 +164,20 @@ export function MediaItemRow({
               ) : (
                 <div className="w-full h-full flex items-center justify-center top-0 left-0 absolute p-2 z-50">
                   {data.mediaType === "image" ? (
-                    <ImageIcon className="w-7 h-7 text-muted-foreground" />
+                    <Image className="w-7 h-7 text-muted-foreground" />
                   ) : (
-                    <VideoIcon className="w-7 h-7 text-muted-foreground" />
+                    <Video className="w-7 h-7 text-muted-foreground" />
                   )}
                 </div>
               ))}
             {data.mediaType === "music" && (
               <div className="w-full h-full flex items-center justify-center top-0 left-0 absolute p-2 z-50">
-                <MusicIcon className="w-7 h-7 text-muted-foreground" />
+                <Music className="w-7 h-7 text-muted-foreground" />
               </div>
             )}
             {data.mediaType === "voiceover" && (
               <div className="w-full h-full flex items-center justify-center top-0 left-0 absolute p-2 z-50">
-                <MicIcon className="w-7 h-7 text-muted-foreground" />
+                <Mic className="w-7 h-7 text-muted-foreground" />
               </div>
             )}
           </>
@@ -185,10 +185,10 @@ export function MediaItemRow({
           <div className="w-full h-full bg-white/5 flex items-center justify-center text-muted-foreground">
             {data.status === "running" && <LoadingIcon className="w-8 h-8" />}
             {data.status === "pending" && (
-              <HourglassIcon className="w-8 h-8 animate-spin ease-in-out delay-700 duration-1000" />
+              <Hourglass className="w-8 h-8 animate-spin ease-in-out delay-700 duration-1000" />
             )}
             {data.status === "failed" && (
-              <CircleXIcon className="w-8 h-8 text-rose-700" />
+              <X className="w-8 h-8 text-rose-700" />
             )}
           </div>
         )}

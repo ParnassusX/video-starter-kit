@@ -23,13 +23,13 @@ import { useProjectId, useVideoProjectStore } from "@/data/store";
 import { cn, resolveMediaUrl } from "@/lib/utils";
 import { MediaItem } from "@/data/schema";
 import {
-  CopyIcon,
-  FilmIcon,
-  ImagesIcon,
-  ImageUpscale,
-  MicIcon,
-  MusicIcon,
-  TrashIcon,
+  Copy as CopyIcon,
+  Film,
+  Images,
+  ImageUp,
+  Mic as MicIcon,
+  Music as MusicIcon,
+  Trash,
 } from "lucide-react";
 import { Button } from "./ui/button";
 import { Separator } from "./ui/separator";
@@ -270,7 +270,7 @@ export function MediaGallerySheet({
                   variant="secondary"
                   disabled={deleteMedia.isPending}
                 >
-                  <ImageUpscale className="w-4 h-4 opacity-50" />
+                  <ImageUp className="w-4 h-4 opacity-50" />
                   Upscale Video
                 </Button>
               )}
@@ -280,7 +280,7 @@ export function MediaGallerySheet({
                   variant="secondary"
                   disabled={deleteMedia.isPending}
                 >
-                  <FilmIcon className="w-4 h-4 opacity-50" />
+                  <Film className="w-4 h-4 opacity-50" />
                   Make Video
                 </Button>
               )}
@@ -289,7 +289,7 @@ export function MediaGallerySheet({
                 variant="secondary"
                 disabled={deleteMedia.isPending}
               >
-                <ImagesIcon className="w-4 h-4 opacity-50" />
+                <Images className="w-4 h-4 opacity-50" />
                 Re-run
               </Button>
               <Button
@@ -300,7 +300,7 @@ export function MediaGallerySheet({
                 {deleteMedia.isPending ? (
                   <LoadingIcon />
                 ) : (
-                  <TrashIcon className="w-4 h-4 opacity-50" />
+                  <Trash className="w-4 h-4 opacity-50" />
                 )}
                 Delete
               </Button>

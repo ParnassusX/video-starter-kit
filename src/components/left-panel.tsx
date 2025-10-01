@@ -10,17 +10,17 @@ import {
 } from "@/data/store";
 import {
   ChevronDown,
-  FilmIcon,
-  FolderOpenIcon,
-  GalleryVerticalIcon,
-  ImageIcon,
-  ImagePlusIcon,
-  ListPlusIcon,
-  MicIcon,
-  MusicIcon,
-  LoaderCircleIcon,
-  CloudUploadIcon,
-  SparklesIcon,
+  Film,
+  FolderOpen,
+  GalleryVertical,
+  Image,
+  ImagePlus,
+  ListPlus,
+  Mic,
+  Music,
+  Loader2,
+  Upload,
+  Sparkles,
 } from "lucide-react";
 import { MediaItemPanel } from "./media-panel";
 import { Button } from "./ui/button";
@@ -174,7 +174,7 @@ export default function LeftPanel() {
             size="sm"
             onClick={() => setProjectDialogOpen(true)}
           >
-            <FolderOpenIcon className="w-4 h-4 opacity-50" />
+            <FolderOpen className="w-4 h-4 opacity-50" />
           </Button>
         </div>
       </div>
@@ -187,7 +187,7 @@ export default function LeftPanel() {
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" size="sm" className="px-2">
-                  <ListPlusIcon className="w-4 h-4 opacity-50" />
+                  <ListPlus className="w-4 h-4 opacity-50" />
                   <span className="capitalize">{mediaType}</span>
                   <ChevronDown className="w-4 h-4 opacity-50" />
                 </Button>
@@ -197,35 +197,35 @@ export default function LeftPanel() {
                   className="text-sm"
                   onClick={() => setMediaType("all")}
                 >
-                  <GalleryVerticalIcon className="w-4 h-4 opacity-50" />
+                  <GalleryVertical className="w-4 h-4 opacity-50" />
                   All
                 </DropdownMenuItem>
                 <DropdownMenuItem
                   className="text-sm"
                   onClick={() => setMediaType("image")}
                 >
-                  <ImageIcon className="w-4 h-4 opacity-50" />
+                  <Image className="w-4 h-4 opacity-50" />
                   Image
                 </DropdownMenuItem>
                 <DropdownMenuItem
                   className="text-sm"
                   onClick={() => setMediaType("music")}
                 >
-                  <MusicIcon className="w-4 h-4 opacity-50" />
+                  <Music className="w-4 h-4 opacity-50" />
                   Music
                 </DropdownMenuItem>
                 <DropdownMenuItem
                   className="text-sm"
                   onClick={() => setMediaType("voiceover")}
                 >
-                  <MicIcon className="w-4 h-4 opacity-50" />
+                  <Mic className="w-4 h-4 opacity-50" />
                   Voiceover
                 </DropdownMenuItem>
                 <DropdownMenuItem
                   className="text-sm"
                   onClick={() => setMediaType("video")}
                 >
-                  <FilmIcon className="w-4 h-4 opacity-50" />
+                  <Film className="w-4 h-4 opacity-50" />
                   Video
                 </DropdownMenuItem>
               </DropdownMenuContent>
@@ -248,9 +248,9 @@ export default function LeftPanel() {
                   accept="image/*,audio/*,video/*"
                 />
                 {isUploading ? (
-                  <LoaderCircleIcon className="w-4 h-4 opacity-50 animate-spin" />
+                  <Loader2 className="w-4 h-4 opacity-50 animate-spin" />
                 ) : (
-                  <CloudUploadIcon className="w-4 h-4 opacity-50" />
+                  <Upload className="w-4 h-4 opacity-50" />
                 )}
               </label>
             </Button>
@@ -261,7 +261,7 @@ export default function LeftPanel() {
               size="sm"
               onClick={() => openGenerateDialog()}
             >
-              <SparklesIcon className="w-4 h-4 opacity-50" />
+              <Sparkles className="w-4 h-4 opacity-50" />
               Generate...
             </Button>
           )}
@@ -277,7 +277,7 @@ export default function LeftPanel() {
               size="sm"
               onClick={() => openGenerateDialog()}
             >
-              <ImagePlusIcon className="w-4 h-4 opacity-50" />
+              <ImagePlus className="w-4 h-4 opacity-50" />
               Generate...
             </Button>
           </div>

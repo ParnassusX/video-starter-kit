@@ -1,7 +1,7 @@
 import type { MediaItem, VideoTrack } from "@/data/schema";
 import { GenerateData, LAST_PROJECT_ID_KEY } from "@/data/store";
 import { type ClassValue, clsx } from "clsx";
-import { ImageIcon, MicIcon, MusicIcon, VideoIcon } from "lucide-react";
+import { Image, Mic, Music, Video } from "lucide-react";
 import type { FunctionComponent } from "react";
 import { twMerge } from "tailwind-merge";
 import type { InputAsset } from "./fal";
@@ -42,10 +42,10 @@ export const trackIcons: Record<
   VideoTrack["type"] | "image",
   FunctionComponent
 > = {
-  video: VideoIcon,
-  music: MusicIcon,
-  voiceover: MicIcon,
-  image: ImageIcon,
+  video: Video,
+  music: Music,
+  voiceover: Mic,
+  image: Image,
 };
 
 export function resolveDuration(item: MediaItem): number | null {

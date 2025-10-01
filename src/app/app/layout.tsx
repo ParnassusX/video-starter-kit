@@ -1,23 +1,18 @@
 import type { Metadata } from "next";
-import { Analytics } from "@vercel/analytics/react";
-import "../globals.css";
 
 export const metadata: Metadata = {
-  title: "AI Video Developer Starter Kit | fal.ai",
-  description: "Open-source AI video editor built for developers.",
+  title: "AI Video Studio | App",
+  description: "Create videos with AI",
 };
 
-export default function RootLayout({
+export default function AppLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
-      <body className="antialiased dark">
-        {children}
-        <Analytics />
-      </body>
-    </html>
+    <div className="app-container min-h-screen bg-black text-white">
+      {children}
+    </div>
   );
 }

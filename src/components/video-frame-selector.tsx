@@ -344,10 +344,8 @@ export default function VideoFrameSelector({
                   <DialogTitle>Select an Image</DialogTitle>
                 </DialogHeader>
                 <div className="flex items-center gap-2 flex-wrap overflow-y-auto max-h-80 divide-y divide-border">
-                  {mediaItems
-                    .filter((media) => {
-                      if (media.mediaType === "image") return true;
-                    })
+                  {mediaItems && mediaItems
+                    .filter((media) => media && media.mediaType === "image")
                     .map((job) => (
                       <MediaItemRow
                         draggable={false}
