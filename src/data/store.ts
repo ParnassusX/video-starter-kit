@@ -32,6 +32,7 @@ interface VideoProjectProps {
   generateData: GenerateData;
   exportDialogOpen: boolean;
   endpointId: string;
+  rightPanelOpen: boolean;
 }
 
 interface VideoProjectState extends VideoProjectProps {
@@ -50,6 +51,7 @@ interface VideoProjectState extends VideoProjectProps {
   setExportDialogOpen: (open: boolean) => void;
   setEndpointId: (endpointId: string) => void;
   onGenerate: () => void;
+  setRightPanelOpen: (open: boolean) => void;
 }
 
 const DEFAULT_PROPS: VideoProjectProps = {
@@ -72,6 +74,7 @@ const DEFAULT_PROPS: VideoProjectProps = {
     audio_url: null,
   },
   exportDialogOpen: false,
+  rightPanelOpen: false,
 };
 
 type VideoProjectStore = ReturnType<typeof createVideoProjectStore>;
@@ -105,6 +108,7 @@ export const createVideoProjectStore = (
       }),
     // [NOTE]: This is a placeholder function
     onGenerate: () => {},
+    setRightPanelOpen: (open: boolean) => set({ rightPanelOpen: open }),
     setPlayer: (player: PlayerRef) => set({ player }),
     setPlayerCurrentTimestamp: (playerCurrentTimestamp: number) =>
       set({ playerCurrentTimestamp }),

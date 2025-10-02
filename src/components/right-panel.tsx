@@ -98,15 +98,7 @@ function ModelEndpointPicker({
 
 type TabType = "generation" | "media";
 
-type RightPanelProps = {
-  generateDialogOpen?: boolean;
-  handleOnOpenChange?: (open: boolean) => void;
-};
-
-export default function RightPanel({
-  generateDialogOpen = false,
-  handleOnOpenChange,
-}: RightPanelProps) {
+export default function RightPanel() {
   const projectId = useProjectId();
   const { data: project } = useProject(projectId);
   const { data: mediaItems } = useProjectMediaItems(projectId);
@@ -114,6 +106,8 @@ export default function RightPanel({
   const queryClient = useQueryClient();
   const videoProjectStore = useVideoProjectStore();
 
+  const rightPanelOpen = useVideoProjectStore((s) => s.rightPanelOpen);
+  const setRightPanelOpen = useVideoProjectStore((s) => s.setRightPanelOpen);
   const [tab, setTab] = useState<TabType>("generation");
   const [mediaType, setMediaType] = useState<MediaType>("video");
   const [endpointId, setEndpointId] = useState<string>("");
@@ -430,7 +424,7 @@ export default function RightPanel({
       }
       
       // Close the panel if needed
-      handleOnOpenChange?.(false);
+      setRightPanelOpen(false);
       
     } catch (error: unknown) {
       // Error handling is done in the individual model handlers
@@ -542,7 +536,7 @@ export default function RightPanel({
     <div
       className={cn(
         "flex flex-col border-l border-border w-[450px] z-50 transition-all duration-300 absolute top-0 h-full bg-background",
-        generateDialogOpen ? "right-0" : "-right-[450px]"
+        rightPanelOpen ? "right-0" : "-right-[450px]"
       )}
     >
       <div className="flex-1 p-4 flex flex-col gap-4 border-b border-border h-full overflow-y-auto relative">
@@ -553,7 +547,7 @@ export default function RightPanel({
           <Button
             variant="ghost"
             size="icon"
-            onClick={() => handleOnOpenChange(false)}
+            onClick={() => setRightPanelOpen(false)}
             className="flex items-center gap-2"
           >
             <X className="h-4 w-4" />
