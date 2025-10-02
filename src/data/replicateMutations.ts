@@ -17,18 +17,18 @@ export const useReplicateJobCreator = ({
   input,
 }: ReplicateJobCreatorParams) => {
   const queryClient = useQueryClient();
-  
+
   return useMutation({
     mutationFn: async () => {
       // Find the model in our configuration
       const model = (await import("@/lib/replicate")).REPLICATE_MODELS.find(
-        (m) => m.id === modelId
+        (m) => m.id === modelId,
       );
-      
+
       if (!model) {
         throw new Error(`Model ${modelId} not found`);
       }
-      
+
       // Create the prediction
       const prediction = await replicate.predictions.create({
         version: model.version,
@@ -42,12 +42,15 @@ export const useReplicateJobCreator = ({
     },
     onSuccess: async (prediction) => {
       // Convert Replicate status to our status type
-      const statusMap: Record<string, 'pending' | 'running' | 'completed' | 'failed'> = {
-        'starting': 'pending',
-        'processing': 'running',
-        'succeeded': 'completed',
-        'failed': 'failed',
-        'canceled': 'failed'
+      const statusMap: Record<
+        string,
+        "pending" | "running" | "completed" | "failed"
+      > = {
+        starting: "pending",
+        processing: "running",
+        succeeded: "completed",
+        failed: "failed",
+        canceled: "failed",
       };
 
       // Save the prediction to the database
@@ -58,7 +61,7 @@ export const useReplicateJobCreator = ({
         kind: "generated",
         endpointId: `replicate:${modelId}`,
         requestId: prediction.id,
-        status: statusMap[prediction.status] || 'pending',
+        status: statusMap[prediction.status] || "pending",
         input,
       });
 

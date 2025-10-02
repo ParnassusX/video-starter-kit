@@ -9,7 +9,9 @@ export default function Header() {
         <div className="flex flex-1">
           <Link href="/" className="flex items-center space-x-2">
             <Film className="w-6 h-6 text-purple-400" />
-            <span className="font-bold bg-gradient-to-r from-purple-400 to-pink-600 bg-clip-text text-transparent">Kinetic Canvas</span>
+            <span className="font-bold bg-gradient-to-r from-purple-400 to-pink-600 bg-clip-text text-transparent">
+              Kinetic Canvas
+            </span>
           </Link>
         </div>
 

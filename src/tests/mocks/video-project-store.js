@@ -2,9 +2,9 @@
 
 export const videoProjectStore = {
   generateData: {
-    prompt: 'test prompt',
-    provider: 'replicate',
-    modelId: 'stability-ai/sdxl',
+    prompt: "test prompt",
+    provider: "replicate",
+    modelId: "stability-ai/sdxl",
   },
   setGenerateData: jest.fn(),
   onGenerate: null,
@@ -12,7 +12,7 @@ export const videoProjectStore = {
   selectedMedia: null,
   setSelectedMedia: jest.fn(),
   isGenerating: false,
-  setIsGenerating: jest.fn().mockImplementation(function(value) {
+  setIsGenerating: jest.fn().mockImplementation(function (value) {
     this.isGenerating = value;
   }),
 };

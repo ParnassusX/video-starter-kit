@@ -1,24 +1,24 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  // No experimental features needed
-  experimental: {},
-  // Optimize image handling
+  reactStrictMode: true,
+  experimental: {
+    serverActions: {
+      bodySizeLimit: "2mb"
+    }
+  },
   images: {
-    formats: ['image/avif', 'image/webp'],
     remotePatterns: [
       {
-        protocol: 'https',
-        hostname: '**',
+        protocol: "https",
+        hostname: "fal.ai",
       },
     ],
   },
-  // Transpile specific modules
   transpilePackages: [
-    '@fal-ai/client',
-    'remotion',
-    '@remotion/player',
-    '@remotion/media-utils',
+    "@fal-ai/serverless-client",
+    "@fal-ai/serverless-proxy",
+    "@fal-ai/serverless-react",
   ],
 }
 
-export default nextConfig;
+export default nextConfig

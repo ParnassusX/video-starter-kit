@@ -144,9 +144,9 @@ const VideoTrackSequence: React.FC<TrackSequenceProps> = ({
             durationInFrames={durationInFrames}
             premountFor={3000}
           >
-            {media.mediaType === "video" && <Video src={mediaUrl} />}
+            {media.mediaType === "video" && <Video src={mediaUrl} crossOrigin="anonymous" muted />}
             {media.mediaType === "image" && (
-              <Img src={mediaUrl} style={{ objectFit: "cover" }} />
+              <Img src={mediaUrl} style={{ objectFit: "cover" }} crossOrigin="anonymous" />
             )}
           </Sequence>
         );

@@ -1,4 +1,15 @@
-import { Sparkles, Zap, Image, Video, Music, Type, Scissors, Upload, Activity, Wand2 } from "lucide-react";
+import {
+  Sparkles,
+  Zap,
+  Image,
+  Video,
+  Music,
+  Type,
+  Scissors,
+  Upload,
+  Activity,
+  Wand2,
+} from "lucide-react";
 
 const features = [
   {
@@ -16,22 +27,26 @@ const features = [
   {
     icon: Upload,
     title: "Seamless File Upload",
-    description: "Drag and drop your media files with our intuitive upload system that handles videos, images, and audio.",
+    description:
+      "Drag and drop your media files with our intuitive upload system that handles videos, images, and audio.",
   },
   {
     icon: Activity,
     title: "Video Analysis",
-    description: "Gain insights from your videos with AI analysis tools that help optimize your content.",
+    description:
+      "Gain insights from your videos with AI analysis tools that help optimize your content.",
   },
   {
     icon: Wand2,
     title: "One-Click Enhancement",
-    description: "Instantly improve video quality, stabilization, and color grading with our AI enhancement tools.",
+    description:
+      "Instantly improve video quality, stabilization, and color grading with our AI enhancement tools.",
   },
   {
     icon: Zap,
     title: "Fast Processing",
-    description: "Experience rapid video generation and editing with our optimized AI infrastructure.",
+    description:
+      "Experience rapid video generation and editing with our optimized AI infrastructure.",
   },
 ];
 
@@ -44,7 +59,8 @@ export default function Features() {
             Powerful Video Creation Tools
           </h2>
           <p className="text-gray-300 text-lg">
-            Kinetic Canvas provides everything you need to create, edit, and enhance videos with AI assistance.
+            Kinetic Canvas provides everything you need to create, edit, and
+            enhance videos with AI assistance.
           </p>
         </div>
 
@@ -57,7 +73,9 @@ export default function Features() {
               <div className="w-16 h-16 rounded-xl bg-gradient-to-br from-purple-500/20 to-blue-500/20 flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
                 <feature.icon className="w-7 h-7 text-purple-300" />
               </div>
-              <h3 className="text-xl font-semibold mb-3 text-white group-hover:text-purple-300 transition-colors">{feature.title}</h3>
+              <h3 className="text-xl font-semibold mb-3 text-white group-hover:text-purple-300 transition-colors">
+                {feature.title}
+              </h3>
               <p className="text-gray-300">{feature.description}</p>
             </div>
           ))}

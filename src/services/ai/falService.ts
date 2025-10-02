@@ -28,7 +28,7 @@ class FalAIService {
   async generateVideo(
     modelId: string,
     input: Record<string, any>,
-    onProgress?: (progress: number) => void
+    onProgress?: (progress: number) => void,
   ): Promise<{ url: string }> {
     try {
       const result = await fal.subscribe(`${modelId}`, {

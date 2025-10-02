@@ -19,18 +19,24 @@ type VideoGenerationPanelProps = {
   onVideoGenerated?: (url: string) => void;
 };
 
-export function VideoGenerationPanel({ onVideoGenerated }: VideoGenerationPanelProps) {
+export function VideoGenerationPanel({
+  onVideoGenerated,
+}: VideoGenerationPanelProps) {
   const [prompt, setPrompt] = useState("");
-  const [negativePrompt, setNegativePrompt] = useState("blurry, distorted, low quality");
+  const [negativePrompt, setNegativePrompt] = useState(
+    "blurry, distorted, low quality",
+  );
   const [modelId, setModelId] = useState(DEFAULT_MODEL_ID);
-  const [modelProvider, setModelProvider] = useState<"fal" | "replicate" | "bytedance">("fal");
+  const [modelProvider, setModelProvider] = useState<
+    "fal" | "replicate" | "bytedance"
+  >("fal");
   const [startImage, setStartImage] = useState<string | null>(null);
   const [endImage, setEndImage] = useState<string | null>(null);
   const [showImageInputs, setShowImageInputs] = useState(false);
-  
+
   const { state, generateVideo } = useVideoGeneration();
   const { isGenerating, progress, error, result } = state;
-  
+
   // Check if the selected model requires image inputs
   useEffect(() => {
     setShowImageInputs(modelId.includes("image-to-video"));
@@ -39,7 +45,7 @@ export function VideoGenerationPanel({ onVideoGenerated }: VideoGenerationPanelP
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!prompt.trim()) return;
-    
+
     // For image-to-video models, check if images are provided
     if (showImageInputs && (!startImage || !endImage)) {
       alert("Please provide both start and end images");
@@ -57,13 +63,13 @@ export function VideoGenerationPanel({ onVideoGenerated }: VideoGenerationPanelP
         fps: 8,
         guidance_scale: 7.5,
       };
-      
+
       // Add images if required by the model
       if (showImageInputs) {
         input.start_image = startImage;
         input.end_image = endImage;
       }
-      
+
       const videoUrl = await generateVideo(modelId, input);
 
       if (videoUrl) {
@@ -73,18 +79,24 @@ export function VideoGenerationPanel({ onVideoGenerated }: VideoGenerationPanelP
       console.error("Failed to generate video:", err);
     }
   };
-  
+
   // Handle model selection
-  const handleModelChange = (id: string, provider: "fal" | "replicate" | "bytedance") => {
+  const handleModelChange = (
+    id: string,
+    provider: "fal" | "replicate" | "bytedance",
+  ) => {
     setModelId(id);
     setModelProvider(provider);
   };
-  
+
   // Handle image upload
-  const handleImageUpload = (type: "start" | "end", e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleImageUpload = (
+    type: "start" | "end",
+    e: React.ChangeEvent<HTMLInputElement>,
+  ) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    
+
     const reader = new FileReader();
     reader.onload = (event) => {
       if (type === "start") {
@@ -99,11 +111,11 @@ export function VideoGenerationPanel({ onVideoGenerated }: VideoGenerationPanelP
   return (
     <div className="space-y-4 p-4 border rounded-lg bg-card">
       <h2 className="text-lg font-semibold">Generate Video</h2>
-      
+
       <div className="space-y-4">
         <div className="space-y-2">
           <Label htmlFor="model">Model</Label>
-          <ModelPicker 
+          <ModelPicker
             mediaType="video"
             value={`${modelProvider}:${modelId}`}
             onValueChange={handleModelChange}
@@ -111,7 +123,7 @@ export function VideoGenerationPanel({ onVideoGenerated }: VideoGenerationPanelP
           />
         </div>
       </div>
-      
+
       <form onSubmit={handleSubmit} className="space-y-4">
         <div className="space-y-2">
           <Label htmlFor="prompt">Prompt</Label>
@@ -124,7 +136,7 @@ export function VideoGenerationPanel({ onVideoGenerated }: VideoGenerationPanelP
             className="w-full"
           />
         </div>
-        
+
         <div className="space-y-2">
           <Label htmlFor="negative_prompt">Negative Prompt</Label>
           <Input
@@ -136,11 +148,11 @@ export function VideoGenerationPanel({ onVideoGenerated }: VideoGenerationPanelP
             className="w-full"
           />
         </div>
-        
+
         {showImageInputs && (
           <div className="space-y-4 p-4 border rounded-md">
             <h3 className="text-md font-medium">Image Inputs</h3>
-            
+
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="start_image">Start Image</Label>
@@ -150,7 +162,9 @@ export function VideoGenerationPanel({ onVideoGenerated }: VideoGenerationPanelP
                   ) : (
                     <div className="flex flex-col items-center">
                       <Upload className="h-10 w-10 text-muted-foreground" />
-                      <span className="text-sm text-muted-foreground mt-2">Upload start image</span>
+                      <span className="text-sm text-muted-foreground mt-2">
+                        Upload start image
+                      </span>
                     </div>
                   )}
                   <Input
@@ -165,13 +179,15 @@ export function VideoGenerationPanel({ onVideoGenerated }: VideoGenerationPanelP
                     variant="outline"
                     size="sm"
                     className="mt-2"
-                    onClick={() => document.getElementById("start_image")?.click()}
+                    onClick={() =>
+                      document.getElementById("start_image")?.click()
+                    }
                   >
                     {startImage ? "Change" : "Upload"}
                   </Button>
                 </div>
               </div>
-              
+
               <div className="space-y-2">
                 <Label htmlFor="end_image">End Image</Label>
                 <div className="flex flex-col items-center justify-center border-2 border-dashed rounded-md p-4 h-40">
@@ -180,7 +196,9 @@ export function VideoGenerationPanel({ onVideoGenerated }: VideoGenerationPanelP
                   ) : (
                     <div className="flex flex-col items-center">
                       <Upload className="h-10 w-10 text-muted-foreground" />
-                      <span className="text-sm text-muted-foreground mt-2">Upload end image</span>
+                      <span className="text-sm text-muted-foreground mt-2">
+                        Upload end image
+                      </span>
                     </div>
                   )}
                   <Input
@@ -195,7 +213,9 @@ export function VideoGenerationPanel({ onVideoGenerated }: VideoGenerationPanelP
                     variant="outline"
                     size="sm"
                     className="mt-2"
-                    onClick={() => document.getElementById("end_image")?.click()}
+                    onClick={() =>
+                      document.getElementById("end_image")?.click()
+                    }
                   >
                     {endImage ? "Change" : "Upload"}
                   </Button>
@@ -236,8 +256,8 @@ export function VideoGenerationPanel({ onVideoGenerated }: VideoGenerationPanelP
           </div>
         )}
 
-        <Button 
-          type="submit" 
+        <Button
+          type="submit"
           disabled={isGenerating || !prompt.trim()}
           className="w-full"
         >

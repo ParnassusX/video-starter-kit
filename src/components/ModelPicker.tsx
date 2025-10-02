@@ -40,17 +40,17 @@ export function ModelPicker({
   // Map fal.ai models
   const falModels = useMemo(
     () =>
-      AVAILABLE_ENDPOINTS.filter((endpoint) => endpoint.category === mediaType).map(
-        (model) => ({
-          id: `fal:${model.endpointId}`,
-          label: model.label,
-          description: model.description,
-          inputAsset: model.inputAsset,
-          provider: "fal" as const,
-          category: model.category,
-        })
-      ),
-    [mediaType]
+      AVAILABLE_ENDPOINTS.filter(
+        (endpoint) => endpoint.category === mediaType,
+      ).map((model) => ({
+        id: `fal:${model.endpointId}`,
+        label: model.label,
+        description: model.description,
+        inputAsset: model.inputAsset,
+        provider: "fal" as const,
+        category: model.category,
+      })),
+    [mediaType],
   );
 
   // Map Replicate models
@@ -64,7 +64,7 @@ export function ModelPicker({
           provider: "replicate" as const,
           category: model.category,
         })),
-    [replicateModels, mediaType]
+    [replicateModels, mediaType],
   );
 
   // Map Bytedance models
@@ -76,62 +76,69 @@ export function ModelPicker({
           label: `${model.label} (Bytedance)`,
           provider: "bytedance" as const,
           category: model.category,
-        })
+        }),
       ),
-    [mediaType]
+    [mediaType],
   );
 
   // Combine all model lists and remove duplicates
   const allModels = useMemo(() => {
     // Create a map to track models by their functionality
     const modelMap = new Map();
-    
+
     // Process fal models first (they take priority)
-    falModels.forEach(model => {
+    falModels.forEach((model) => {
       // Use a more specific identifier that includes functionality hints from the label
-      const modelFunction = model.label.toLowerCase().replace(/\s+/g, '_');
+      const modelFunction = model.label.toLowerCase().replace(/\s+/g, "_");
       modelMap.set(modelFunction, model);
     });
-    
-    // Add bytedance models if not already present with similar functionality
-    bytedanceModels.forEach(model => {
-      // Extract the base functionality without the provider suffix
-      const modelFunction = model.label.split(' (')[0].toLowerCase().replace(/\s+/g, '_');
-      if (!modelMap.has(modelFunction)) {
-        modelMap.set(modelFunction, model);
-      }
-    });
-    
-    // Add replicate models if not already present
-    replicateModelsFiltered.forEach(model => {
-      // Extract the base functionality without the provider suffix
-      const modelFunction = model.label.split(' (')[0].toLowerCase().replace(/\s+/g, '_');
-      if (!modelMap.has(modelFunction)) {
-        modelMap.set(modelFunction, model);
-      }
-    });
-    
-    // Sort models alphabetically by label for better organization
-    return Array.from(modelMap.values()).sort((a, b) => a.label.localeCompare(b.label));
-  }, [falModels, replicateModelsFiltered, bytedanceModels]);
 
+    // Add bytedance models if not already present with similar functionality
+    bytedanceModels.forEach((model) => {
+      // Extract the base functionality without the provider suffix
+      const modelFunction = model.label
+        .split(" (")[0]
+        .toLowerCase()
+        .replace(/\s+/g, "_");
+      if (!modelMap.has(modelFunction)) {
+        modelMap.set(modelFunction, model);
+      }
+    });
+
+    // Add replicate models if not already present
+    replicateModelsFiltered.forEach((model) => {
+      // Extract the base functionality without the provider suffix
+      const modelFunction = model.label
+        .split(" (")[0]
+        .toLowerCase()
+        .replace(/\s+/g, "_");
+      if (!modelMap.has(modelFunction)) {
+        modelMap.set(modelFunction, model);
+      }
+    });
+
+    // Sort models alphabetically by label for better organization
+    return Array.from(modelMap.values()).sort((a, b) =>
+      a.label.localeCompare(b.label),
+    );
+  }, [falModels, replicateModelsFiltered, bytedanceModels]);
 
   // Find the currently selected model to display its name
   const selectedModel = useMemo(() => {
     if (!value) return null;
-    
+
     // First try to find by exact ID match
-    let model = allModels.find(m => m.id === value);
-    
+    let model = allModels.find((m) => m.id === value);
+
     // If not found, try to match by the model ID part after the provider prefix
     if (!model) {
-      model = allModels.find(m => {
+      model = allModels.find((m) => {
         // Extract the model ID part (after the provider prefix)
         const modelId = m.id.split(":")[1];
         return modelId === value;
       });
     }
-    
+
     return model;
   }, [value, allModels]);
 
@@ -155,21 +162,25 @@ export function ModelPicker({
         return "";
       default:
         return "";
-    };
+    }
   };
 
   return (
-    <Select 
-      value={selectedModel ? selectedModel.id : undefined} 
-      onValueChange={handleValueChange} 
+    <Select
+      value={selectedModel ? selectedModel.id : undefined}
+      onValueChange={handleValueChange}
       className={className}
     >
       <SelectTrigger className={`text-base w-full font-semibold ${className}`}>
         <SelectValue placeholder="Select a model">
           {selectedModel && (
             <div className="flex flex-row gap-2 items-center">
-              <span className="text-sm">{getProviderIcon(selectedModel.provider)}</span>
-              <div className="font-medium">{selectedModel.label.split(' (')[0]}</div>
+              <span className="text-sm">
+                {getProviderIcon(selectedModel.provider)}
+              </span>
+              <div className="font-medium">
+                {selectedModel.label.split(" (")[0]}
+              </div>
             </div>
           )}
         </SelectValue>
@@ -180,19 +191,27 @@ export function ModelPicker({
             <div className="flex flex-row gap-2 items-center">
               <span className="text-sm">{getProviderIcon(model.provider)}</span>
               <div className="flex-1">
-                <div className="font-medium">{model.label.split(' (')[0]}</div>
+                <div className="font-medium">{model.label.split(" (")[0]}</div>
                 <div className="text-xs text-muted-foreground">
-                  {model.provider.charAt(0).toUpperCase() + model.provider.slice(1)}
+                  {model.provider.charAt(0).toUpperCase() +
+                    model.provider.slice(1)}
                 </div>
                 {model.description && (
-                  <div className="text-xs text-muted-foreground">{model.description}</div>
+                  <div className="text-xs text-muted-foreground">
+                    {model.description}
+                  </div>
                 )}
                 {model.inputAsset && model.inputAsset.length > 0 && (
                   <div className="text-xs text-blue-400">
-                    Required inputs: {Array.isArray(model.inputAsset) 
-                      ? model.inputAsset.map(asset => 
-                          typeof asset === 'string' ? asset : `${asset.type}${asset.key ? ` (${asset.key})` : ''}`
-                        ).join(', ') 
+                    Required inputs:{" "}
+                    {Array.isArray(model.inputAsset)
+                      ? model.inputAsset
+                          .map((asset) =>
+                            typeof asset === "string"
+                              ? asset
+                              : `${asset.type}${asset.key ? ` (${asset.key})` : ""}`,
+                          )
+                          .join(", ")
                       : model.inputAsset}
                   </div>
                 )}

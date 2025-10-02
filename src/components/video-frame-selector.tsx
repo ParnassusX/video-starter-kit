@@ -344,17 +344,18 @@ export default function VideoFrameSelector({
                   <DialogTitle>Select an Image</DialogTitle>
                 </DialogHeader>
                 <div className="flex items-center gap-2 flex-wrap overflow-y-auto max-h-80 divide-y divide-border">
-                  {mediaItems && mediaItems
-                    .filter((media) => media && media.mediaType === "image")
-                    .map((job) => (
-                      <MediaItemRow
-                        draggable={false}
-                        key={job.id}
-                        data={job}
-                        onOpen={handleSelectMedia}
-                        className="cursor-pointer"
-                      />
-                    ))}
+                  {mediaItems &&
+                    mediaItems
+                      .filter((media) => media && media.mediaType === "image")
+                      .map((job) => (
+                        <MediaItemRow
+                          draggable={false}
+                          key={job.id}
+                          data={job}
+                          onOpen={handleSelectMedia}
+                          className="cursor-pointer"
+                        />
+                      ))}
                 </div>
               </DialogContent>
             </Dialog>

@@ -1,6 +1,6 @@
 // Mock implementation of landing page components for testing
 
-import React from 'react';
+import React from "react";
 
 // Mock Header component
 export function Header() {
@@ -11,8 +11,8 @@ export function Header() {
 export function Hero() {
   const handleGetStarted = () => {
     // This will be mocked in tests
-    const router = require('next/router').useRouter();
-    router.push('/app');
+    const router = require("next/router").useRouter();
+    router.push("/app");
   };
 
   return (

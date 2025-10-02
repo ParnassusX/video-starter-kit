@@ -1,15 +1,15 @@
 // Mock implementation of the main App component for testing
 
-import React from 'react';
-import { useReplicateJobCreator } from '../../data/replicateMutations';
-import { videoProjectStore } from './video-project-store';
+import React from "react";
+import { useReplicateJobCreator } from "../../data/replicateMutations";
+import { videoProjectStore } from "./video-project-store";
 
 export function App({ projectId, queryClient }) {
   // Call the hook to ensure it's registered
   const createReplicateJob = useReplicateJobCreator({
     projectId,
-    modelId: videoProjectStore.generateData.modelId || 'stability-ai/sdxl',
-    mediaType: 'image',
+    modelId: videoProjectStore.generateData.modelId || "stability-ai/sdxl",
+    mediaType: "image",
     input: {
       prompt: videoProjectStore.generateData.prompt,
     },
@@ -19,47 +19,47 @@ export function App({ projectId, queryClient }) {
     try {
       // Set loading state
       videoProjectStore.setIsGenerating(true);
-      
+
       // Call mutateAsync and then manually call the onSuccess callback
       const result = await createReplicateJob.mutateAsync({
-        modelId: videoProjectStore.generateData.modelId || 'stability-ai/sdxl',
+        modelId: videoProjectStore.generateData.modelId || "stability-ai/sdxl",
         input: {
           prompt: videoProjectStore.generateData.prompt,
         },
       });
-      
+
       // Simulate the onSuccess callback
-      const { db } = require('../../data/db');
+      const { db } = require("../../data/db");
       await db.media.create({
         projectId,
         createdAt: Date.now(),
-        mediaType: 'image',
-        kind: 'generated',
-        endpointId: `replicate:${videoProjectStore.generateData.modelId || 'stability-ai/sdxl'}`,
+        mediaType: "image",
+        kind: "generated",
+        endpointId: `replicate:${videoProjectStore.generateData.modelId || "stability-ai/sdxl"}`,
         requestId: result.id,
-        status: 'pending',
+        status: "pending",
         input: {
           prompt: videoProjectStore.generateData.prompt,
         },
       });
-      
+
       // Invalidate queries to refresh UI
       if (queryClient && queryClient.invalidateQueries) {
-        queryClient.invalidateQueries(['projectMediaItems', projectId]);
+        queryClient.invalidateQueries(["projectMediaItems", projectId]);
       }
-      
+
       // Show success toast
-      const { toast } = require('../../hooks/use-toast');
+      const { toast } = require("../../hooks/use-toast");
       toast({
-        title: 'Job submitted successfully',
-        description: 'Your generation job has been submitted successfully.',
-        status: 'success',
+        title: "Job submitted successfully",
+        description: "Your generation job has been submitted successfully.",
+        status: "success",
       });
-      
+
       // Reset loading state
       videoProjectStore.setIsGenerating(false);
     } catch (error) {
-      console.error('Error generating with Replicate:', error);
+      console.error("Error generating with Replicate:", error);
       // Reset loading state on error
       videoProjectStore.setIsGenerating(false);
     }
@@ -69,38 +69,38 @@ export function App({ projectId, queryClient }) {
     try {
       const file = e.target.files[0];
       if (!file) return;
-      
+
       // Create object URL for preview
       const url = URL.createObjectURL(file);
-      
+
       // Simulate file upload
-      const { db } = require('../../data/db');
+      const { db } = require("../../data/db");
       await db.media.create({
         projectId,
         createdAt: Date.now(),
-        mediaType: 'image',
-        kind: 'uploaded',
+        mediaType: "image",
+        kind: "uploaded",
         url,
-        status: 'completed',
+        status: "completed",
       });
-      
+
       // Invalidate queries to refresh UI
       if (queryClient && queryClient.invalidateQueries) {
-        queryClient.invalidateQueries(['projectMediaItems', projectId]);
+        queryClient.invalidateQueries(["projectMediaItems", projectId]);
       }
-      
+
       // Show success toast
-      const { toast } = require('../../hooks/use-toast');
+      const { toast } = require("../../hooks/use-toast");
       toast({
-        title: 'File uploaded successfully',
-        description: 'Your file has been uploaded successfully.',
-        status: 'success',
+        title: "File uploaded successfully",
+        description: "Your file has been uploaded successfully.",
+        status: "success",
       });
     } catch (error) {
-      console.error('Error uploading file:', error);
+      console.error("Error uploading file:", error);
     }
   };
-  
+
   return (
     <div data-testid="main-app">
       <header data-testid="app-header">App Header</header>
@@ -113,18 +113,20 @@ export function App({ projectId, queryClient }) {
             data-testid="prompt-input"
             placeholder="Enter your prompt"
             value={videoProjectStore.generateData.prompt}
-            onChange={(e) => videoProjectStore.setGenerateData({ prompt: e.target.value })}
+            onChange={(e) =>
+              videoProjectStore.setGenerateData({ prompt: e.target.value })
+            }
           />
-          <button 
-              data-testid="generate-button" 
-              onClick={handleGenerate}
-              disabled={videoProjectStore.isGenerating}
-            >
-              Generate
-            </button>
-            {videoProjectStore.isGenerating && (
-              <div data-testid="loading-indicator">Loading...</div>
-            )}
+          <button
+            data-testid="generate-button"
+            onClick={handleGenerate}
+            disabled={videoProjectStore.isGenerating}
+          >
+            Generate
+          </button>
+          {videoProjectStore.isGenerating && (
+            <div data-testid="loading-indicator">Loading...</div>
+          )}
           <div>
             <input
               type="file"

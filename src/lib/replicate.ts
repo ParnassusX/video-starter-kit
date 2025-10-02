@@ -50,7 +50,7 @@ export const REPLICATE_MODELS: ReplicateModel[] = [
 export async function generateWithReplicate(
   modelId: string,
   version: string,
-  input: Record<string, any>
+  input: Record<string, any>,
 ) {
   try {
     const output = await replicate.run(`${modelId}:${version}`, { input });

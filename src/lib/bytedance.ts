@@ -106,20 +106,20 @@ export function getBytedanceModelsAsApiInfo(): ApiInfo[] {
   return BYTEDANCE_MODELS.map((model) => {
     // Define input assets based on model ID
     let inputAsset: InputAsset[] = [];
-    
+
     if (model.id === "seedance/v1/lite/image-to-video") {
       inputAsset = [
         {
           type: "image",
-          key: "start_image"
+          key: "start_image",
         },
         {
           type: "image",
-          key: "end_image"
-        }
+          key: "end_image",
+        },
       ];
     }
-    
+
     return {
       endpointId: `bytedance:${model.id}`,
       label: model.label,
@@ -136,17 +136,17 @@ export function getBytedanceModelsAsApiInfo(): ApiInfo[] {
 export async function generateWithBytedance(
   modelId: string,
   input: Record<string, any>,
-  apiKey: string
+  apiKey: string,
 ) {
   const [provider, ...modelPath] = modelId.split(":");
   const model = modelPath.join(":");
-  
+
   try {
     const response = await fetch(`https://api.bytedance.com/v1/${model}`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        "Authorization": `Bearer ${apiKey}`,
+        Authorization: `Bearer ${apiKey}`,
       },
       body: JSON.stringify({
         ...input,
@@ -156,7 +156,9 @@ export async function generateWithBytedance(
 
     if (!response.ok) {
       const error = await response.json();
-      throw new Error(error.message || "Failed to generate video with Bytedance");
+      throw new Error(
+        error.message || "Failed to generate video with Bytedance",
+      );
     }
 
     const result = await response.json();

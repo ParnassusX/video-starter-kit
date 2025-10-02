@@ -237,8 +237,10 @@ export default function RightPanel({
         }
       : {};
   // Determine if we're using a Replicate model
-  const isReplicateModel = endpointId.startsWith('replicate:');
-  const modelId = isReplicateModel ? endpointId.replace('replicate:', '') : endpointId;
+  const isReplicateModel = endpointId.startsWith("replicate:");
+  const modelId = isReplicateModel
+    ? endpointId.replace("replicate:", "")
+    : endpointId;
 
   // Use the appropriate job creator based on the model provider
   const falJob = useJobCreator({
@@ -250,16 +252,26 @@ export default function RightPanel({
   });
 
   // Memoize the parameters for the Replicate job creator to avoid unnecessary recreations
-  const replicateJobParams = useMemo(() => ({
-    projectId,
-    modelId: generateData.modelId || modelId,
-    mediaType: mediaType,
-    input: {
-      prompt: generateData.prompt,
-      ...generateData.extraInput,
-    },
-  }), [projectId, generateData.modelId, modelId, mediaType, generateData.prompt, generateData.extraInput]);
-  
+  const replicateJobParams = useMemo(
+    () => ({
+      projectId,
+      modelId: generateData.modelId || modelId,
+      mediaType: mediaType,
+      input: {
+        prompt: generateData.prompt,
+        ...generateData.extraInput,
+      },
+    }),
+    [
+      projectId,
+      generateData.modelId,
+      modelId,
+      mediaType,
+      generateData.prompt,
+      generateData.extraInput,
+    ],
+  );
+
   // Initialize the Replicate job creator with memoized parameters
   const createReplicateJob = useReplicateJobCreator(replicateJobParams);
 
@@ -272,7 +284,7 @@ export default function RightPanel({
     try {
       // Use either the stored modelId in generateData or construct it from endpointId
       const modelIdToUse = generateData.modelId || endpointId;
-      
+
       if (!modelIdToUse) {
         toast({
           title: "Error",
@@ -281,32 +293,33 @@ export default function RightPanel({
         });
         return;
       }
-      
+
       // Ensure generateData has the modelId
       if (!generateData.modelId) {
         setGenerateData({ ...generateData, modelId: modelIdToUse });
       }
-      
+
       // Set loading state
       setIsGenerating(true);
 
       // Determine the model provider from the modelId
-      const modelIdString = generateData.modelId || '';
+      const modelIdString = generateData.modelId || "";
       const [modelProvider, modelIdPart] = modelIdString.includes(":")
         ? (modelIdString.split(":") as [string, string])
         : ["fal", modelIdString];
 
       // For fal.ai models, find the endpoint
-      const endpoint = modelProvider === "fal"
-        ? AVAILABLE_ENDPOINTS.find((e) => e.endpointId === modelIdPart)
-        : null;
+      const endpoint =
+        modelProvider === "fal"
+          ? AVAILABLE_ENDPOINTS.find((e) => e.endpointId === modelIdPart)
+          : null;
 
       if (!endpoint && modelProvider === "fal") {
         throw new Error(`No endpoint found for model: ${modelId}`);
       }
-      
+
       // Set the media type based on the endpoint category
-      const mediaType = endpoint?.category === 'image' ? 'image' : 'video';
+      const mediaType = endpoint?.category === "image" ? "image" : "video";
 
       // Handle fal.ai models
       if (modelProvider === "fal" && endpoint) {
@@ -317,14 +330,14 @@ export default function RightPanel({
             prompt: generateData.prompt,
             ...generateData.extraInput,
           };
-          
+
           // Use the fal.ai client to generate content
           const result = await fal.subscribe(endpoint.endpointId, { input });
-          
+
           // Save the result to the media library
           if (result) {
             const mediaUrl = result.media?.url || result.url;
-            
+
             if (mediaUrl) {
               await db.mediaItems.add({
                 id: `fal-${Date.now()}`,
@@ -338,12 +351,12 @@ export default function RightPanel({
                   ...result.metadata,
                 },
               });
-              
+
               // Invalidate the media items query to refresh the UI
               queryClient.invalidateQueries({
                 queryKey: queryKeys.projectMediaItems(projectId),
               });
-              
+
               toast({
                 title: "🎥 Generation completed",
                 description: `Your ${mediaType} has been generated successfully!`,
@@ -351,19 +364,21 @@ export default function RightPanel({
             }
           }
         } catch (error) {
-          console.error('Error generating with fal.ai:', error);
+          console.error("Error generating with fal.ai:", error);
           toast({
             title: "Failed to generate content",
-            description: error instanceof Error ? error.message : 'An unknown error occurred',
-            variant: 'destructive',
+            description:
+              error instanceof Error
+                ? error.message
+                : "An unknown error occurred",
+            variant: "destructive",
           });
           throw error;
         } finally {
           // Reset loading state
           setIsGenerating(false);
         }
-        
-      } else if (modelProvider === 'replicate') {
+      } else if (modelProvider === "replicate") {
         try {
           await createReplicateJob.mutateAsync({
             modelId,
@@ -372,18 +387,22 @@ export default function RightPanel({
               ...generateData.extraInput,
             },
           });
-          
+
           // Show success message for Replicate job creation
           toast({
             title: "Job submitted successfully",
-            description: "Your content is being generated with Replicate. Check the media library for results.",
+            description:
+              "Your content is being generated with Replicate. Check the media library for results.",
           });
         } catch (error) {
-          console.error('Error creating Replicate job:', error);
+          console.error("Error creating Replicate job:", error);
           toast({
-            title: 'Failed to create job',
-            description: error instanceof Error ? error.message : 'An unknown error occurred',
-            variant: 'destructive',
+            title: "Failed to create job",
+            description:
+              error instanceof Error
+                ? error.message
+                : "An unknown error occurred",
+            variant: "destructive",
           });
           throw error;
         } finally {
@@ -410,17 +429,23 @@ export default function RightPanel({
               console.error("Error creating fal.ai job:", error);
               toast({
                 title: "Failed to submit job",
-                description: error instanceof Error ? error.message : "An unknown error occurred",
+                description:
+                  error instanceof Error
+                    ? error.message
+                    : "An unknown error occurred",
                 variant: "destructive",
               });
             },
           });
         } catch (error) {
-          console.error('Error creating job:', error);
+          console.error("Error creating job:", error);
           toast({
-            title: 'Failed to create job',
-            description: error instanceof Error ? error.message : 'An unknown error occurred',
-            variant: 'destructive',
+            title: "Failed to create job",
+            description:
+              error instanceof Error
+                ? error.message
+                : "An unknown error occurred",
+            variant: "destructive",
           });
           throw error;
         } finally {
@@ -428,17 +453,17 @@ export default function RightPanel({
           setIsGenerating(false);
         }
       }
-      
+
       // Close the panel if needed
       handleOnOpenChange?.(false);
-      
     } catch (error: unknown) {
       // Error handling is done in the individual model handlers
       // This catch block is for any unhandled errors
       console.error("Error in handleOnGenerate:", error);
       toast({
         title: "An error occurred",
-        description: error instanceof Error ? error.message : "Please try again later.",
+        description:
+          error instanceof Error ? error.message : "Please try again later.",
         variant: "destructive",
       });
     }
@@ -542,7 +567,7 @@ export default function RightPanel({
     <div
       className={cn(
         "flex flex-col border-l border-border w-[450px] z-50 transition-all duration-300 absolute top-0 h-full bg-background",
-        generateDialogOpen ? "right-0" : "-right-[450px]"
+        generateDialogOpen ? "right-0" : "-right-[450px]",
       )}
     >
       <div className="flex-1 p-4 flex flex-col gap-4 border-b border-border h-full overflow-y-auto relative">
@@ -600,7 +625,7 @@ export default function RightPanel({
         </div>
 
         {tab === "generation" ? (
-          <VideoGenerationPanel 
+          <VideoGenerationPanel
             mediaType={mediaType}
             generateData={generateData}
             isGenerating={isGenerating}

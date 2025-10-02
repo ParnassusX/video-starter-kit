@@ -89,7 +89,7 @@ export const AVAILABLE_ENDPOINTS: ApiInfo[] = [
     cost: "",
     category: "image",
   },
-  
+
   // Kontext Models (Image Editing)
   {
     endpointId: "fal-ai/flux-pro/kontext",
@@ -127,7 +127,7 @@ export const AVAILABLE_ENDPOINTS: ApiInfo[] = [
     inputAsset: ["image"],
     prompt: true,
   },
-  
+
   // Video Generation Models
   {
     endpointId: "fal-ai/minimax/video-01-live",
@@ -161,7 +161,7 @@ export const AVAILABLE_ENDPOINTS: ApiInfo[] = [
     inputAsset: [],
     cameraControl: true,
   },
-  
+
   // Bytedance Video Models
   {
     endpointId: "fal-ai/bytedance/seedance/v1/pro/text-to-video",
@@ -188,12 +188,12 @@ export const AVAILABLE_ENDPOINTS: ApiInfo[] = [
     inputAsset: [
       {
         type: "image",
-        key: "start_image"
+        key: "start_image",
       },
       {
         type: "image",
-        key: "end_image"
-      }
+        key: "end_image",
+      },
     ],
     prompt: true,
   },

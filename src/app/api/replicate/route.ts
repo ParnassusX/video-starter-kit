@@ -5,15 +5,12 @@ import { REPLICATE_MODELS } from "@/lib/replicate";
 export async function POST(request: Request) {
   try {
     const { modelId, input } = await request.json();
-    
+
     // Find the model in our configuration
-    const model = REPLICATE_MODELS.find(m => m.id === modelId);
-    
+    const model = REPLICATE_MODELS.find((m) => m.id === modelId);
+
     if (!model) {
-      return NextResponse.json(
-        { error: "Model not found" },
-        { status: 404 }
-      );
+      return NextResponse.json({ error: "Model not found" }, { status: 404 });
     }
 
     // Create the prediction
@@ -30,7 +27,7 @@ export async function POST(request: Request) {
     console.error("Replicate API error:", error);
     return NextResponse.json(
       { error: "Failed to create prediction" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
