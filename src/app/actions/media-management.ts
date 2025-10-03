@@ -9,11 +9,11 @@ import { getProject, updateProject } from './project-management';
 
 // Schema for media item
 const mediaItemSchema = z.object({
-  id: z.string().optional(),
+  id: z.string(),
   type: z.enum(['image', 'video', 'audio']),
   url: z.string().url(),
   name: z.string(),
-  createdAt: z.number().optional(),
+  createdAt: z.number(),
   metadata: z.record(z.any()).optional(),
 });
 
@@ -24,7 +24,8 @@ export type MediaItem = z.infer<typeof mediaItemSchema>;
  */
 export async function addMediaItem(mediaItem: Omit<MediaItem, 'id' | 'createdAt'>) {
   // Get current project ID
-  const projectId = cookies().get('projectId')?.value || PROJECT_PLACEHOLDER;
+  const projectIdValue = cookies().get('projectId')?.value || PROJECT_PLACEHOLDER;
+  const projectId = typeof projectIdValue === 'string' ? projectIdValue : projectIdValue.id;
   
   // Validate media item
   const result = mediaItemSchema.safeParse({
@@ -71,7 +72,8 @@ export async function addMediaItem(mediaItem: Omit<MediaItem, 'id' | 'createdAt'
  */
 export async function removeMediaItem(mediaItemId: string) {
   // Get current project ID
-  const projectId = cookies().get('projectId')?.value || PROJECT_PLACEHOLDER;
+  const projectIdValue = cookies().get('projectId')?.value || PROJECT_PLACEHOLDER;
+  const projectId = typeof projectIdValue === 'string' ? projectIdValue : projectIdValue.id;
   
   try {
     // Get current project

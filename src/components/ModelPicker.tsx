@@ -8,7 +8,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "./ui/select";
-import { AVAILABLE_ENDPOINTS } from "@/lib/fal";
+import { AVAILABLE_ENDPOINTS, type InputAsset } from "@/lib/fal";
 import { useReplicateModels } from "@/hooks/useReplicateModels";
 import { MediaType } from "@/data/store";
 import { BYTEDANCE_MODELS } from "@/lib/bytedance";
@@ -161,8 +161,7 @@ export function ModelPicker({
   return (
     <Select 
       value={selectedModel ? selectedModel.id : undefined} 
-      onValueChange={handleValueChange} 
-      className={className}
+      onValueChange={handleValueChange}
     >
       <SelectTrigger className={`text-base w-full font-semibold ${className}`}>
         <SelectValue placeholder="Select a model">
@@ -190,7 +189,7 @@ export function ModelPicker({
                 {model.inputAsset && model.inputAsset.length > 0 && (
                   <div className="text-xs text-blue-400">
                     Required inputs: {Array.isArray(model.inputAsset) 
-                      ? model.inputAsset.map(asset => 
+                      ? model.inputAsset.map((asset: InputAsset) =>
                           typeof asset === 'string' ? asset : `${asset.type}${asset.key ? ` (${asset.key})` : ''}`
                         ).join(', ') 
                       : model.inputAsset}

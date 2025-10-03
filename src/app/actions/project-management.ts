@@ -98,7 +98,8 @@ export async function createProject(formData: FormData) {
 export async function getProject(id: string = '') {
   // If no ID provided, get from cookie
   if (!id) {
-    id = cookies().get('projectId')?.value || PROJECT_PLACEHOLDER;
+    const projectIdValue = cookies().get('projectId')?.value || PROJECT_PLACEHOLDER;
+    id = typeof projectIdValue === 'string' ? projectIdValue : projectIdValue.id;
   }
   
   try {
@@ -165,7 +166,7 @@ export async function deleteProject(id: string) {
     // If this was the current project, reset to placeholder
     const currentProjectId = cookies().get('projectId')?.value;
     if (currentProjectId === id) {
-      cookies().set('projectId', PROJECT_PLACEHOLDER, { 
+      cookies().set('projectId', PROJECT_PLACEHOLDER.id, {
         httpOnly: true,
         secure: process.env.NODE_ENV === 'production',
         sameSite: 'strict',
