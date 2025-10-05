@@ -33,6 +33,7 @@ interface VideoProjectProps {
   exportDialogOpen: boolean;
   endpointId: string;
   rightPanelOpen: boolean;
+  zoomLevel: number;
 }
 
 interface VideoProjectState extends VideoProjectProps {
@@ -52,6 +53,7 @@ interface VideoProjectState extends VideoProjectProps {
   setEndpointId: (endpointId: string) => void;
   onGenerate: () => void;
   setRightPanelOpen: (open: boolean) => void;
+  setZoomLevel: (zoomLevel: number) => void;
 }
 
 const DEFAULT_PROPS: VideoProjectProps = {
