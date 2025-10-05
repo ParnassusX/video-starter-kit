@@ -222,7 +222,7 @@ export function VideoAnalysis({ videoUrl }: VideoAnalysisProps) {
                   <CardContent>
                     <div className="text-2xl font-bold">68%</div>
                     <p className="text-xs text-muted-foreground mt-1">
-                      Viewers who watched >50%
+                      Viewers who watched &gt;50%
                     </p>
                   </CardContent>
                 </Card>

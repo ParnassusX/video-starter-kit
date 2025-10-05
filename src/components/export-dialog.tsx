@@ -46,11 +46,21 @@ export function ExportDialog({ onOpenChange, ...props }: ExportDialogProps) {
       const videoData = composition.tracks.map((track) => ({
         id: track.id,
         type: track.type === "video" ? "video" : "audio",
-        keyframes: composition.frames[track.id].map((frame) => ({
-          timestamp: frame.timestamp,
-          duration: frame.duration,
-          url: resolveMediaUrl(mediaItems[frame.data.mediaId]),
-        })),
+        keyframes: composition.frames[track.id]
+          .map((frame) => ({
+            timestamp: frame.timestamp,
+            duration: frame.duration,
+            url: resolveMediaUrl(mediaItems[frame.data.mediaId]),
+          }))
+          .filter(
+            (
+              keyframe
+            ): keyframe is {
+              timestamp: number;
+              duration: number;
+              url: string;
+            } => keyframe.url !== null
+          ),
       }));
       if (videoData.length === 0) {
         throw new Error("No tracks to export");
