@@ -5,9 +5,9 @@ import { DownloadIcon } from "lucide-react";
 import type { Metadata, ResolvingMetadata } from "next";
 import { notFound } from "next/navigation";
 
-type PageParams = {
+type PageParams = Promise<{
   id: string;
-};
+}>;
 
 type PageProps = {
   params: PageParams;
@@ -17,7 +17,8 @@ export async function generateMetadata(
   { params }: PageProps,
   parent: ResolvingMetadata,
 ): Promise<Metadata> {
-  const video = await fetchSharedVideo(params.id);
+  const { id } = await params;
+  const video = await fetchSharedVideo(id);
   if (!video) {
     return {
       title: "Video Not Found",
@@ -81,8 +82,8 @@ export async function generateMetadata(
 }
 
 export default async function SharePage({ params }: PageProps) {
-  const shareId = params.id;
-  const shareData = await fetchSharedVideo(shareId);
+  const { id } = await params;
+  const shareData = await fetchSharedVideo(id);
   if (!shareData) {
     return notFound();
   }

@@ -11,7 +11,7 @@ import {
   useProjectId,
   useVideoProjectStore,
 } from "@/data/store";
-import { AVAILABLE_ENDPOINTS, type InputAsset } from "@/lib/fal";
+import { AVAILABLE_ENDPOINTS, type InputAsset, fal } from "@/lib/fal";
 import { useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
 import { useEffect, useMemo, useState } from "react";
@@ -88,7 +88,7 @@ function ModelEndpointPicker({
       <SelectContent>
         {endpoints.map((endpoint) => (
           <SelectItem key={endpoint.endpointId} value={endpoint.endpointId}>
-            {endpoint.name}
+            {endpoint.label}
           </SelectItem>
         ))}
       </SelectContent>
@@ -112,13 +112,15 @@ export default function RightPanel({
   const { data: mediaItems } = useProjectMediaItems(projectId);
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  const videoProjectStore = useVideoProjectStore();
+  const videoProjectStore = useVideoProjectStore((s) => s);
 
   const [tab, setTab] = useState<TabType>("generation");
   const [mediaType, setMediaType] = useState<MediaType>("video");
   const [endpointId, setEndpointId] = useState<string>("");
   const [generateData, setGenerateData] = useState<GenerateData>({
     prompt: "",
+    duration: 5, // Default duration
+    voice: "default", // Default voice
   });
 
   const endpoint = useMemo(
@@ -205,13 +207,28 @@ export default function RightPanel({
   };
 
   if (generateData.image) {
-    input.image_url = generateData.image;
+    // Handle File objects by converting to URL or string
+    if (generateData.image instanceof File) {
+      input.image_url = URL.createObjectURL(generateData.image);
+    } else {
+      input.image_url = generateData.image;
+    }
   }
   if (generateData.video_url) {
-    input.video_url = generateData.video_url;
+    // Handle File objects by converting to URL or string
+    if (generateData.video_url instanceof File) {
+      input.video_url = URL.createObjectURL(generateData.video_url);
+    } else {
+      input.video_url = generateData.video_url;
+    }
   }
   if (generateData.audio_url) {
-    input.audio_url = generateData.audio_url;
+    // Handle File objects by converting to URL or string
+    if (generateData.audio_url instanceof File) {
+      input.audio_url = URL.createObjectURL(generateData.audio_url);
+    } else {
+      input.audio_url = generateData.audio_url;
+    }
   }
   if (generateData.reference_audio_url) {
     input.reference_audio_url = generateData.reference_audio_url;
@@ -249,6 +266,8 @@ export default function RightPanel({
       generateData.image && mediaType === "video"
         ? `${endpointId}/image-to-video`
         : endpointId,
+    mediaType,
+    input,
   });
 
   // Memoize the parameters for the Replicate job creator to avoid unnecessary recreations
@@ -336,19 +355,27 @@ export default function RightPanel({
 
           // Save the result to the media library
           if (result) {
-            const mediaUrl = result.media?.url || result.url;
+            const mediaUrl = (result as any).media?.url || (result as any).url;
 
             if (mediaUrl) {
-              await db.mediaItems.add({
-                id: `fal-${Date.now()}`,
+              await db.media.create({
                 projectId,
-                type: mediaType,
+                kind: "generated",
+                mediaType,
+                status: "completed",
+                endpointId: endpoint.endpointId,
+                requestId: "direct-generation",
                 url: mediaUrl,
-                createdAt: new Date().toISOString(),
+                createdAt: Date.now(),
+                input: {
+                  model: endpoint.endpointId,
+                  prompt: generateData.prompt,
+                },
+                output: result,
                 metadata: {
                   model: endpoint.endpointId,
                   prompt: generateData.prompt,
-                  ...result.metadata,
+                  ...(result as any).metadata,
                 },
               });
 

@@ -2,6 +2,13 @@
 
 import { useEffect } from "react";
 
+// Extend Window interface to include workbox
+declare global {
+  interface Window {
+    workbox?: any;
+  }
+}
+
 export default function RegisterServiceWorker() {
   useEffect(() => {
     if (
@@ -21,11 +28,11 @@ export default function RegisterServiceWorker() {
           if ("sync" in registration) {
             // Request background sync permission if needed
             const status = await navigator.permissions.query({
-              name: "periodic-background-sync",
+              name: "periodic-background-sync" as PermissionName,
             });
 
             if (status.state === "granted") {
-              await registration.periodicSync.register("sync-video-edits", {
+              await (registration as any).periodicSync.register("sync-video-edits", {
                 minInterval: 60 * 60 * 1000, // 1 hour
               });
             }

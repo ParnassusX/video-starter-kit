@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Analytics } from "@vercel/analytics/react";
 import "./globals.css";
 import RegisterServiceWorker from "@/components/pwa/register-service-worker";
+import { NextAuthProvider } from "@/components/providers/session-provider";
 
 export const metadata: Metadata = {
   title: "FAL Video Studio",
@@ -37,9 +38,11 @@ export default function RootLayout({
         />
       </head>
       <body className="antialiased dark">
-        {children}
-        <Analytics />
-        <RegisterServiceWorker />
+        <NextAuthProvider>
+          {children}
+          <Analytics />
+          <RegisterServiceWorker />
+        </NextAuthProvider>
       </body>
     </html>
   );

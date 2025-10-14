@@ -3,6 +3,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { db } from "./db";
 import { queryKeys } from "./queries";
 import type { VideoProject } from "./schema";
+import { useSession } from "next-auth/react";
 
 export const useProjectUpdater = (projectId: string) => {
   const queryClient = useQueryClient();
@@ -40,6 +41,7 @@ export const useJobCreator = ({
   input,
 }: JobCreatorParams) => {
   const queryClient = useQueryClient();
+  const { data: session } = useSession();
 
   return useMutation({
     mutationFn: async () => {
@@ -48,6 +50,14 @@ export const useJobCreator = ({
         if (!input.prompt?.trim()) {
           throw new Error("Prompt is required");
         }
+
+        // Check if user is authenticated
+        if (!session?.user?.id) {
+          throw new Error("Authentication required");
+        }
+
+        // Extract provider from endpointId
+        const provider = endpointId.split("/")[0];
 
         // Log the job submission for debugging
         console.log(`Submitting job to ${endpointId}`, {
@@ -59,6 +69,13 @@ export const useJobCreator = ({
           },
         });
 
+        // Get user's API key for the provider
+        const apiKeyResponse = await fetch(`/api/user/keys/${provider}`);
+        if (!apiKeyResponse.ok) {
+          throw new Error(`Missing API key for ${provider}`);
+        }
+
+        // Submit job with user's API key
         const result = await fal.queue.submit(endpointId, { input });
 
         if (!result?.request_id) {
@@ -106,7 +123,7 @@ export const useJobCreator = ({
 
       try {
         // Replace the optimistic update with the real data
-        await db.media.create({
+        const mediaItem = await db.media.create({
           projectId,
           createdAt: Date.now(),
           mediaType,
@@ -116,6 +133,34 @@ export const useJobCreator = ({
           status: "pending",
           input,
         });
+
+        // Track usage if user is authenticated
+        if (session?.user?.id) {
+          // Extract provider and model from endpointId
+          const provider = endpointId.split("/")[0];
+          const model = endpointId;
+
+          // Estimate cost based on media type (simplified)
+          const estimatedCost = mediaType === "video" ? 0.5 : 0.1;
+
+          // Track usage asynchronously
+          fetch("/api/user/usage", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              provider,
+              model,
+              cost: estimatedCost,
+              metadata: {
+                mediaType,
+                endpointId,
+                requestId: data.request_id,
+              },
+            }),
+          }).catch((error) => {
+            console.error("Failed to track usage:", error);
+          });
+        }
 
         // Remove the temporary item and refresh the list
         await queryClient.invalidateQueries({

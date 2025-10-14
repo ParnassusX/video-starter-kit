@@ -169,7 +169,6 @@ export function ModelPicker({
     <Select
       value={selectedModel ? selectedModel.id : undefined}
       onValueChange={handleValueChange}
-      className={className}
     >
       <SelectTrigger className={`text-base w-full font-semibold ${className}`}>
         <SelectValue placeholder="Select a model">
@@ -206,7 +205,7 @@ export function ModelPicker({
                     Required inputs:{" "}
                     {Array.isArray(model.inputAsset)
                       ? model.inputAsset
-                          .map((asset) =>
+                          .map((asset: any) =>
                             typeof asset === "string"
                               ? asset
                               : `${asset.type}${asset.key ? ` (${asset.key})` : ""}`,

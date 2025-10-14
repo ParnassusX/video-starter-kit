@@ -26,7 +26,8 @@ export async function addMediaItem(
   mediaItem: Omit<MediaItem, "id" | "createdAt">,
 ) {
   // Get current project ID
-  const projectId = cookies().get("projectId")?.value || PROJECT_PLACEHOLDER;
+  const cookieStore = await cookies();
+  const projectId = cookieStore.get("projectId")?.value || PROJECT_PLACEHOLDER;
 
   // Validate media item
   const result = mediaItemSchema.safeParse({
@@ -41,17 +42,23 @@ export async function addMediaItem(
 
   try {
     // Get current project
-    const { data: project, error } = await getProject(projectId);
+    const { data: project, error } = await getProject(projectId as string);
 
     if (error || !project) {
       return { error: error || "Project not found" };
     }
 
-    // Add media item to project
-    const updatedMediaItems = [...(project.mediaItems || []), result.data];
+    // Add media item to project - ensure all required properties are present
+    const mediaItemWithRequiredProps = {
+      ...result.data,
+      id: result.data.id || nanoid(),
+      createdAt: result.data.createdAt || Date.now(),
+    };
+    
+    const updatedMediaItems = [...(project.mediaItems || []), mediaItemWithRequiredProps];
 
     // Update project
-    const updateResult = await updateProject(projectId, {
+    const updateResult = await updateProject(projectId as string, {
       mediaItems: updatedMediaItems,
     });
 
@@ -73,11 +80,12 @@ export async function addMediaItem(
  */
 export async function removeMediaItem(mediaItemId: string) {
   // Get current project ID
-  const projectId = cookies().get("projectId")?.value || PROJECT_PLACEHOLDER;
+  const cookieStore = await cookies();
+  const projectId = cookieStore.get("projectId")?.value || PROJECT_PLACEHOLDER;
 
   try {
     // Get current project
-    const { data: project, error } = await getProject(projectId);
+    const { data: project, error } = await getProject(projectId as string);
 
     if (error || !project) {
       return { error: error || "Project not found" };
@@ -89,7 +97,7 @@ export async function removeMediaItem(mediaItemId: string) {
     );
 
     // Update project
-    const updateResult = await updateProject(projectId, {
+    const updateResult = await updateProject(projectId as string, {
       mediaItems: updatedMediaItems,
     });
 

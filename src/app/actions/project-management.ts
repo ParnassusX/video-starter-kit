@@ -79,7 +79,8 @@ export async function createProject(formData: FormData) {
     await kv.sadd("projects", id);
 
     // Set as current project in cookie
-    cookies().set("projectId", id, {
+    const cookieStore = await cookies();
+    cookieStore.set("projectId", id, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
       sameSite: "strict",
@@ -102,7 +103,8 @@ export async function createProject(formData: FormData) {
 export async function getProject(id: string = "") {
   // If no ID provided, get from cookie
   if (!id) {
-    id = cookies().get("projectId")?.value || PROJECT_PLACEHOLDER;
+    const cookieStore = await cookies();
+    id = cookieStore.get("projectId")?.value || PROJECT_PLACEHOLDER.id;
   }
 
   try {
@@ -167,9 +169,10 @@ export async function deleteProject(id: string) {
     await kv.srem("projects", id);
 
     // If this was the current project, reset to placeholder
-    const currentProjectId = cookies().get("projectId")?.value;
+    const cookieStore = await cookies();
+    const currentProjectId = cookieStore.get("projectId")?.value;
     if (currentProjectId === id) {
-      cookies().set("projectId", PROJECT_PLACEHOLDER, {
+      cookieStore.set("projectId", PROJECT_PLACEHOLDER.id, {
         httpOnly: true,
         secure: process.env.NODE_ENV === "production",
         sameSite: "strict",
@@ -191,7 +194,7 @@ export async function deleteProject(id: string) {
  */
 export async function listProjects() {
   try {
-    const projectIds = await kv.smembers("projects") as string[];
+    const projectIds = (await kv.smembers("projects")) as string[];
 
     if (!projectIds.length) {
       return { data: [] };
@@ -207,9 +210,9 @@ export async function listProjects() {
     }
 
     // Sort by updated date (newest first)
-    const sortedProjects = [...projects].sort(function(a, b) {
-      const aDate = new Date(a.updatedAt || a.createdAt);
-      const bDate = new Date(b.updatedAt || b.createdAt);
+    const sortedProjects = [...projects].sort(function (a, b) {
+      const aDate = new Date(a.updatedAt || a.createdAt || Date.now());
+      const bDate = new Date(b.updatedAt || b.createdAt || Date.now());
       return bDate.getTime() - aDate.getTime();
     });
 

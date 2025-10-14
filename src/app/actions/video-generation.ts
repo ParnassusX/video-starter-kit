@@ -22,7 +22,7 @@ export type VideoGenerationParams = z.infer<typeof videoGenerationSchema>;
 // Helper function for video generation
 async function generateVideoImpl(formData: FormData | VideoGenerationParams) {
   // Get project ID from cookies
-  const cookieStore = cookies();
+  const cookieStore = await cookies();
   const projectId = cookieStore.get("projectId")?.value || PROJECT_PLACEHOLDER;
 
   // Parse and validate input
@@ -118,7 +118,9 @@ async function cancelVideoGenerationImpl(generationId: string) {
 /**
  * Server Action to generate video using AI
  */
-export async function generateVideo(formData: FormData | VideoGenerationParams) {
+export async function generateVideo(
+  formData: FormData | VideoGenerationParams,
+) {
   return generateVideoImpl(formData);
 }
 

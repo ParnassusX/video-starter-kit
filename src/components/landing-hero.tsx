@@ -77,16 +77,18 @@ export default function Hero() {
               <div className="w-0 h-0 border-l-8 border-l-transparent border-t-8 border-t-purple-500/80 border-r-8 border-r-transparent mx-auto" />
             </div>
 
-            <LaptopMockup className="transform hover:scale-105 transition-transform duration-500">
-              <Image
-                src="/screenshot.webp?height=800&width=1200"
-                width={1200}
-                height={800}
-                alt="Kinetic Canvas interface"
-                className="w-full h-auto rounded-md"
-                priority
-              />
-            </LaptopMockup>
+            <div className="transform hover:scale-105 transition-transform duration-500">
+              <LaptopMockup>
+                <Image
+                  src="/screenshot.webp?height=800&width=1200"
+                  width={1200}
+                  height={800}
+                  alt="Kinetic Canvas interface"
+                  className="w-full h-auto rounded-md"
+                  priority
+                />
+              </LaptopMockup>
+            </div>
 
             {/* Floating gradient elements */}
             <div className="absolute -top-16 -right-16 w-32 h-32 bg-purple-500/30 rounded-full blur-3xl opacity-20 animate-pulse" />
